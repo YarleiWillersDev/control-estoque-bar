@@ -23,19 +23,19 @@ public class Produto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idProduto;
+    private Long id;
 
     @Column(name = "nome", length=255, nullable=false)
-    private String nomeProduto;
+    private String nome;
 
     @Column(name = "descricao", length=300, nullable=true)
-    private String descricaoProduto;
+    private String descricao;
 
     @Column(name = "quantidade", length=10, nullable=false)
-    private Integer quantidadeProduto;
+    private Integer quantidade;
 
     @Column(name = "preco_unitario", precision=10, scale=2, nullable=false)
-    private BigDecimal precoUnitarioProduto;
+    private BigDecimal precoUnitario;
 
     @ManyToOne
     @JoinColumn(name = "id_categoria")
