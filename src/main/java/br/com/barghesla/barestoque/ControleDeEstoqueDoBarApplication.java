@@ -1,4 +1,4 @@
-package br.com.barghesla.bar_estoque;
+package br.com.barghesla.barestoque;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
