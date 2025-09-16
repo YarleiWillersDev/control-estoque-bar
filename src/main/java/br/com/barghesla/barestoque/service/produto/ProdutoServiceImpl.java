@@ -1,58 +1,69 @@
 package br.com.barghesla.barestoque.service.produto;
 
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
+import br.com.barghesla.barestoque.updater.produto.ProdutoUpdater;
 import br.com.barghesla.barestoque.validation.produto.ProdutoValidator;
 
 @Service
 public class ProdutoServiceImpl implements ProdutoService {
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
+    private final ProdutoValidator produtoValidator;
+    private final ProdutoUpdater produtoUpdater;
 
-    @Autowired
-    private ProdutoValidator produtoValidator;
+    public ProdutoServiceImpl(ProdutoRepository produtoRepository, ProdutoValidator produtoValidator,
+            ProdutoUpdater produtoUpdater) {
+        this.produtoRepository = produtoRepository;
+        this.produtoValidator = produtoValidator;
+        this.produtoUpdater = produtoUpdater;
+    }
 
     @Override
     public Produto criar(Produto produto) {
-        produtoValidator.validar(produto);
+        produtoValidator.validarCriacao(produto);
         produto.setStatus(StatusProduto.ATIVO);
         return produtoRepository.save(produto);
     }
 
     @Override
+    @Transactional
     public Produto atualizar(Long id, Produto produto) {
-        Produto produtoExistente = produtoRepository.findById(id)
+        Produto existente = produtoRepository.findById(id)
                 .orElseThrow(() -> new ProdutoNaoCadastradoException(
                         "Não existem produtos cadastrados para este id na base de dados!"));
-        produtoValidator.atualizarCampos(produtoExistente, produto);
-        produtoValidator.validar(produtoExistente);
-        return produtoRepository.save(produtoExistente);
+
+        produtoValidator.validarAtualizacao(existente, produto);
+        produtoUpdater.aplicar(existente, produto);
+        return produtoRepository.save(existente);
     }
 
     @Override
+    @Transactional
     public void inativar(Long id) {
-        Produto produtoEncontrado = produtoRepository.findById(id)
+        Produto existente = produtoRepository.findById(id)
                 .orElseThrow(() -> new ProdutoNaoCadastradoException(
                         "Não existem produtos cadastrados para este id na base de dados!"));
-        produtoValidator.inativar(produtoEncontrado);
-        produtoRepository.save(produtoEncontrado);
+        produtoValidator.validarInativacao(existente);
+        existente.setStatus(StatusProduto.INATIVO);
+        produtoRepository.save(existente);
     }
 
     @Override
+    @Transactional
     public Produto ativar(Long id) {
-        Produto produtoEncontrado = produtoRepository.findById(id)
+        Produto existente = produtoRepository.findById(id)
                 .orElseThrow(() -> new ProdutoNaoCadastradoException(
                         "Não existem produtos cadastrados para este id na base de dados!"));
-        produtoValidator.ativar(produtoEncontrado);
-        return produtoRepository.save(produtoEncontrado);
+        produtoValidator.validarAtivacao(existente);
+        existente.setStatus(StatusProduto.ATIVO);
+        return produtoRepository.save(existente);
     }
 
     @Override
@@ -64,22 +75,16 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     @Override
     public List<Produto> buscarPorNome(String nome) {
-        List<Produto> produtos = produtoRepository.findByNomeContainingIgnoreCase(nome);
-        produtoValidator.validarListaVazia(produtos, nome);
-        return produtos;
+        return produtoRepository.findByNomeContainingIgnoreCase(nome);
     }
 
     @Override
     public List<Produto> buscarPorCategoria(Long categoriaID) {
-        List<Produto> produtos = produtoRepository.findByCategoriaId(categoriaID);
-        produtoValidator.validarListaVazia(produtos, categoriaID);
-        return produtos;
+        return produtoRepository.findByCategoriaIdOrderByNomeAsc(categoriaID);
     }
 
     @Override
     public List<Produto> listarTodos() {
-        List<Produto> produtos = produtoRepository.findAll();
-        produtoValidator.validarListaVazia(produtos);
-        return produtos;
+        return produtoRepository.findAll();
     }
 }

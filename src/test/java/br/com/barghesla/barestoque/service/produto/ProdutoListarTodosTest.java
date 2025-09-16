@@ -2,21 +2,20 @@ package br.com.barghesla.barestoque.service.produto;
 
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
+@Transactional // garante rollback a cada teste
 class ProdutoListarTodosTest {
 
     @Autowired
@@ -28,17 +27,17 @@ class ProdutoListarTodosTest {
     @Autowired
     private ProdutoRepository produtoRepository;
 
-    @AfterEach
-    void limparBanco() {
-        // Remove tudo para não deixar lixo para os próximos testes
+    @BeforeEach
+    void setup() {
         produtoRepository.deleteAll();
         categoriaRepository.deleteAll();
     }
 
     @Test
+    @DisplayName("Deve listar todos os produtos com sucesso")
     void deveListarTodosProdutosComSucesso() {
         // Arrange
-        Categoria categoria = categoriaRepository.save(new Categoria(null, "Bebidas"));
+        Categoria categoria = categoriaRepository.save(new Categoria(null, "Bebidas+"));
 
         Produto produto1 = new Produto();
         produto1.setNome("Cerveja");
@@ -62,18 +61,14 @@ class ProdutoListarTodosTest {
 
         // Assert
         assertThat(produtos).hasSize(2);
-        assertThat(produtos).extracting("nome")
+        assertThat(produtos).extracting(Produto::getNome)
                 .containsExactlyInAnyOrder("Cerveja", "Refrigerante");
     }
 
     @Test
-    void deveLancarExcecaoQuandoNaoExistiremProdutos() {
-        // Arrange → garante banco vazio
-        produtoRepository.deleteAll();
-
-        // Act + Assert
-        assertThatThrownBy(() -> produtoService.listarTodos())
-                .isInstanceOf(ProdutoNaoCadastradoException.class)
-                .hasMessage("Não existem produtos cadastrados na base de dados!");
+    void deveRetornarListaVaziaQuandoNaoExistiremProdutos() {
+        List<Produto> produtos = produtoService.listarTodos();
+        assertThat(produtos).isEmpty();
     }
+
 }

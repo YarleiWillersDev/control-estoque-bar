@@ -1,88 +1,75 @@
 package br.com.barghesla.barestoque.validation.produto;
-
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
+import br.com.barghesla.barestoque.exception.produto.PrecoInvalidoException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoJaAtivoException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoJaInativoException;
-import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
+import br.com.barghesla.barestoque.exception.usuario.NomeObrigatorioException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 
 @Component
 public class ProdutoValidator {
-    
-    @Autowired
-    private CategoriaRepository categoriaRepository;;
+    private final CategoriaRepository categoriaRepository;
 
-    public void validar(Produto produto) {
-        validarQuantidade(produto);
-        validarCategoria(produto);
+    public ProdutoValidator(CategoriaRepository categoriaRepository) {
+        this.categoriaRepository = categoriaRepository;
     }
 
-    public void validarQuantidade(Produto produto) {
-        if (produto.getQuantidade() < 0) {
-            throw new QuantidadeInvalidaException("Quantidade não pode ser negativa!");
-        }
+    public void validarCriacao(Produto p) {
+        validarBasico(p);
+        validarCategoriaObrigatoria(p);
     }
 
-    public void validarCategoria(Produto produto) {
-        if (produto.getCategoria() != null) {
-            categoriaRepository.findById(produto.getCategoria().getId())
-                .orElseThrow(() -> new CategoriaNaoEncontradaException("Categoria Inválida!"));
-        }
+    public void validarAtualizacao(Produto existente, Produto novo) {
+        // Validar apenas se veio no payload
+        if (novo.getNome() != null) validarNome(novo);
+        if (novo.getPrecoUnitario() != null) validarPreco(novo);
+        if (novo.getQuantidade() != null) validarQuantidade(novo);
+        if (novo.getCategoria() != null) validarCategoriaExistente(novo);
     }
 
-    public void atualizarCampos(Produto existente, Produto novo) {
-        if (novo.getNome() != null) existente.setNome(novo.getNome());
-        if (novo.getDescricao() != null) existente.setDescricao(novo.getDescricao());
-        if (novo.getQuantidade() != null) existente.setQuantidade(novo.getQuantidade());
-        if (novo.getPrecoUnitario() != null) existente.setPrecoUnitario(novo.getPrecoUnitario());
-        if (novo.getCategoria() != null) existente.setCategoria(novo.getCategoria());
+    public void validarBasico(Produto p) {
+        validarNome(p);
+        validarPreco(p);
+        validarQuantidade(p);
+    }
+
+    private void validarNome(Produto p) {
+        if (p.getNome() == null || p.getNome().isBlank())
+            throw new NomeObrigatorioException("Nome é obrigatório.");
+    }
+
+    private void validarPreco(Produto p) {
+        if (p.getPrecoUnitario() == null || p.getPrecoUnitario().signum() < 0)
+            throw new PrecoInvalidoException("Preço deve ser >= 0.");
+    }
+
+    public void validarQuantidade(Produto p) {
+        if (p.getQuantidade() == null || p.getQuantidade() < 0)
+            throw new QuantidadeInvalidaException("Quantidade deve ser >= 0.");
+    }
+
+    private void validarCategoriaObrigatoria(Produto p) {
+        if (p.getCategoria() == null || p.getCategoria().getId() == null)
+            throw new CategoriaNaoEncontradaException("Categoria é obrigatória.");
+        validarCategoriaExistente(p);
+    }
+
+    private void validarCategoriaExistente(Produto p) {
+        categoriaRepository.findById(p.getCategoria().getId())
+           .orElseThrow(() -> new CategoriaNaoEncontradaException("Categoria inválida."));
     }
 
     public void validarAtivacao(Produto produto) {
-        if (produto.getStatus() == StatusProduto.ATIVO) {
+        if (produto.getStatus() == StatusProduto.ATIVO)
             throw new ProdutoJaAtivoException("Produto já está ATIVO!");
-        }
     }
 
     public void validarInativacao(Produto produto) {
-        if (produto.getStatus() == StatusProduto.INATIVO) {
+        if (produto.getStatus() == StatusProduto.INATIVO)
             throw new ProdutoJaInativoException("Produto já está INATIVO");
-        }
-    }
-
-    public void ativar(Produto produto) {
-        validarAtivacao(produto);
-        produto.setStatus(StatusProduto.ATIVO);
-    }
-
-    public void inativar(Produto produto) {
-        validarInativacao(produto);
-        produto.setStatus(StatusProduto.INATIVO);
-    }
-
-    public void validarListaVazia(List<Produto> produtos, String nome) {
-        validarListaVaziaInterno(produtos, "Não existem produtos cadastrados para este nome na base de dados!");
-    }
-
-    public void validarListaVazia(List<Produto> produtos, Long categoriaId) {
-        validarListaVaziaInterno(produtos, "Não existem produtos cadastrados para este id na base de dados!");
-    }
-
-    public void validarListaVazia(List<Produto> produtos) {
-        validarListaVaziaInterno(produtos, "Não existem produtos cadastrados na base de dados!");
-    }
-
-    private void validarListaVaziaInterno(List<Produto> produtos, String mensagemCustomizada) {
-        if (produtos == null || produtos.isEmpty()) {
-            throw new ProdutoNaoCadastradoException(mensagemCustomizada);
-        }
     }
 }

@@ -2,19 +2,15 @@ package br.com.barghesla.barestoque.service.produto;
 
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
 import java.math.BigDecimal;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 class ProdutoBuscarPorNomeTest {
@@ -53,10 +49,9 @@ class ProdutoBuscarPorNomeTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoNomeNaoExiste() {
-        assertThatThrownBy(() -> produtoService.buscarPorNome("Vodka"))
-                .isInstanceOf(ProdutoNaoCadastradoException.class)
-                .hasMessage("Não existem produtos cadastrados para este nome na base de dados!");
+    void deveRetornarListaVaziaQuandoNomeNaoExiste() {
+        List<Produto> resultado = produtoService.buscarPorNome("Vodka");
+        assertThat(resultado).isEmpty();
     }
 
     @Test

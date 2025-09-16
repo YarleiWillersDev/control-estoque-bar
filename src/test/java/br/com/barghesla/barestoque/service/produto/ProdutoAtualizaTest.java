@@ -30,7 +30,7 @@ class ProdutoAtualizaTest {
     @Test
     void deveAtualizarProdutoComSucesso() {
         // Arrange
-        Categoria categoria = categoriaRepository.save(new Categoria(null, "Bebidas"));
+        Categoria categoria = categoriaRepository.save(new Categoria(null, "Bebidas-"));
 
         Produto produto = new Produto();
         produto.setNome("Cerveja");
