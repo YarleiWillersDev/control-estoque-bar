@@ -40,7 +40,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (!equalsIgnoreCase(existente.getEmail(), novo.getEmail())
                 && usuarioRepository.existsByEmailAndIdNot(novo.getEmail(), id)) {
-            throw new EmailJaExistenteException("Já existe um usuário com este email cadastrado na base de dados");
+            throw new EmailJaExistenteException("Já existe um usuário com este email cadastrado na base de dados.");
         }
 
         String senhaParaPersistir = novo.getSenha(); 
@@ -58,21 +58,24 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    @Transactional
     public boolean deletar(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deletar'");
+        Usuario usuarioExistente = usuarioRepository.findById(id)
+            .orElseThrow(() -> new UsuarioNaoEncontradoException(
+                "Não existe usuário cadastrado para este ID na base de dados."));
+        usuarioRepository.deleteById(id);
+        return true;
     }
 
     @Override
     public List<Usuario> buscarPorNome(String nome) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarPorNome'");
+        String termo = usuarioValidator.validarNomeVazio(nome);
+        return usuarioRepository.findByNomeContainingIgnoreCase(termo);
     }
 
     @Override
     public List<Usuario> listarTodos() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'listarTodos'");
+        return usuarioRepository.findAllByOrderByNomeAsc();
     }
 
 }

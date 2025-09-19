@@ -1,8 +1,8 @@
 package br.com.barghesla.barestoque.validation.usuario;
 
 import org.springframework.stereotype.Component;
-
 import br.com.barghesla.barestoque.entity.Usuario;
+import br.com.barghesla.barestoque.exception.usuario.CampoNomeNuloException;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.EmailObrigatorioException;
 import br.com.barghesla.barestoque.exception.usuario.NomeDuplicadoException;
@@ -123,6 +123,13 @@ public class UsuarioValidator {
         if (a == null || b == null)
             return false;
         return a.equalsIgnoreCase(b);
+    }
+
+    public String validarNomeVazio(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new CampoNomeNuloException("Nome não pode ser nulo ou conter somente espaços.");
+        }
+        return nome.trim();
     }
 
 }
