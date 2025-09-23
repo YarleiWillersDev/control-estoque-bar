@@ -36,7 +36,7 @@ class UsuarioSalvarTest {
         usuario.setNome("Yarlei");
         usuario.setEmail("yarlei@email.com");
         usuario.setSenha("12345678");
-
+        usuario.setPerfil("USER");
         // Act
         Usuario salvo = usuarioService.salvar(usuario);
 
@@ -53,12 +53,14 @@ class UsuarioSalvarTest {
         usuario1.setNome("Yarlei");
         usuario1.setEmail("yarlei1@email.com");
         usuario1.setSenha("12345678");
+        usuario1.setPerfil("USER");
         usuarioService.salvar(usuario1);
 
         Usuario usuario2 = new Usuario();
         usuario2.setNome("Yarlei"); // mesmo nome
         usuario2.setEmail("yarlei2@email.com");
         usuario2.setSenha("12345678");
+        usuario2.setPerfil("USER");
 
         // Act & Assert
         assertThrows(NomeDuplicadoException.class, () -> usuarioService.salvar(usuario2));
@@ -71,12 +73,14 @@ class UsuarioSalvarTest {
         usuario1.setNome("Rafael");
         usuario1.setEmail("rafael@email.com");
         usuario1.setSenha("12345678");
+        usuario1.setPerfil("USER");
         usuarioService.salvar(usuario1);
 
         Usuario usuario2 = new Usuario();
         usuario2.setNome("Outro Nome");
         usuario2.setEmail("rafael@email.com"); // mesmo email
         usuario2.setSenha("12345678");
+        usuario2.setPerfil("USER");
 
         // Act & Assert
         assertThrows(EmailJaExistenteException.class, () -> usuarioService.salvar(usuario2));
@@ -89,6 +93,7 @@ class UsuarioSalvarTest {
         usuario.setNome("João");
         usuario.setEmail("joao@email.com");
         usuario.setSenha("123"); // senha muito curta
+        usuario.setPerfil("USER");
 
         // Act & Assert
         assertThrows(SenhaInvalidaException.class, () -> usuarioService.salvar(usuario));
