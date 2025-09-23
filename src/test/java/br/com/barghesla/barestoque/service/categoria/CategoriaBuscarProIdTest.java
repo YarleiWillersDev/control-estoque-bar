@@ -3,6 +3,8 @@ package br.com.barghesla.barestoque.service.categoria;
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
+import br.com.barghesla.barestoque.repository.ProdutoRepository;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,8 +23,12 @@ class CategoriaBuscarPorIdTest {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
+    @Autowired
+    private ProdutoRepository produtoRepository;
+
     @AfterEach
     void limparBanco() {
+        produtoRepository.deleteAll();
         categoriaRepository.deleteAll();
     }
 

@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,8 +29,8 @@ public class MovimentacaoEstoque {
     @Column(name="id", nullable=false)
     private Long id;
 
-    @Column(name="tipo", length=10, nullable=false)
-    private String tipo;
+    @Enumerated(EnumType.STRING)
+    private TipoMovimentacaoEstoque tipo;
 
     @Column(name="quantidade", nullable=false)
     private Integer quantidade;
@@ -35,11 +38,11 @@ public class MovimentacaoEstoque {
     @Column(name="data_movimentacao", nullable=false)
     private LocalDateTime dataMovimentacao = LocalDateTime.now();
 
-    @ManyToOne
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name="produto_id", nullable=false)
     private Produto produto;
 
     @ManyToOne
     @JoinColumn(name="usuario_id", nullable=false)
-    private Usuario usuario;
+    private Usuario usuarioID;
 }
