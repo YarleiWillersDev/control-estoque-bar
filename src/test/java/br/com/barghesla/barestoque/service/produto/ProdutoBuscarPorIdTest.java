@@ -1,20 +1,22 @@
 package br.com.barghesla.barestoque.service.produto;
 
+import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.entity.Produto;
+import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
-import jakarta.transaction.Transactional;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -24,36 +26,50 @@ class ProdutoBuscarPorIdTest {
     private ProdutoService produtoService;
 
     @Autowired
-    private CategoriaRepository categoriaRepository;
-
-    @Autowired
     private ProdutoRepository produtoRepository;
 
-    @Test
-    void deveRetornarProdutoQuandoIdExistir() {
-        Categoria categoria = categoriaRepository.save(new Categoria(null, "Destilados"));
+    @Autowired
+    private CategoriaRepository categoriaRepository;
 
-        Produto produto = new Produto();
-        produto.setNome("Vodka Absolut");
-        produto.setDescricao("Vodka Sueca Premium");
-        produto.setPrecoUnitario(new BigDecimal("89.90"));
+    private Produto produto;
+
+    @BeforeEach
+    void setup() {
+        produtoRepository.deleteAll();
+        categoriaRepository.deleteAll();
+
+        Categoria categoria = new Categoria();
+        categoria.setNome("Bebidas-");
+        categoria = categoriaRepository.save(categoria);
+
+        produto = new Produto();
+        produto.setNome("Cerveja IPA");
+        produto.setPrecoUnitario(new BigDecimal("12.50"));
         produto.setQuantidade(20);
+        produto.setStatus(StatusProduto.ATIVO);
         produto.setCategoria(categoria);
-
         produto = produtoRepository.save(produto);
-
-        Produto encontrado = produtoService.buscarPorId(produto.getId());
-
-        assertThat(encontrado).isNotNull();
-        assertThat(encontrado.getNome()).isEqualTo("Vodka Absolut");
     }
 
     @Test
-    void deveLancarExcecaoQuandoIdNaoExistir() {
-        assertThatThrownBy(() -> produtoService.buscarPorId(999L))
-                .isInstanceOf(ProdutoNaoCadastradoException.class)
-                .hasMessage("Não existem produtos cadastrados para este id na base de dados!");
+    @DisplayName("Deve buscar um produto por ID com sucesso")
+    void deveBuscarProdutoPorIdComSucesso() {
+        // Ação: Chamar o serviço, que agora retorna ProdutoResponse
+        ProdutoResponse response = produtoService.buscarPorId(produto.getId());
+
+        // Verificação: Fazer as asserções nos campos do DTO
+        assertNotNull(response);
+        assertEquals(produto.getId(), response.id());
+        assertEquals("Cerveja IPA", response.nome());
+        assertEquals("Bebidas-", response.categoriaID().nome());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao buscar produto com ID inexistente")
+    void naoDeveBuscarProdutoInexistente() {
+        Long idInexistente = 999L;
+        assertThrows(ProdutoNaoCadastradoException.class, () -> {
+            produtoService.buscarPorId(idInexistente);
+        });
     }
 }
-
-

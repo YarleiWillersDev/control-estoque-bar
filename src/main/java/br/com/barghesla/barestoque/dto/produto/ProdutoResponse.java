@@ -2,6 +2,7 @@ package br.com.barghesla.barestoque.dto.produto;
 
 import java.math.BigDecimal;
 import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
+import br.com.barghesla.barestoque.entity.StatusProduto;
 
 public record ProdutoResponse(
         Long id,
@@ -10,6 +11,6 @@ public record ProdutoResponse(
         Integer quantidade,
         BigDecimal precoUnitario,
         CategoriaResponse categoriaID,
-        String status) {
+        StatusProduto status) {
 
 }

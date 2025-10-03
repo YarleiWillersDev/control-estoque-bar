@@ -1,9 +1,11 @@
 package br.com.barghesla.barestoque.service.produto;
 
+import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.exception.produto.ProdutoJaInativoException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
+import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,24 +28,30 @@ class ProdutoInativarTest {
     @Autowired
     private ProdutoRepository produtoRepository;
 
+    @Autowired
+    private CategoriaRepository categoriaRepository;
+
     private Produto produto;
 
     @BeforeEach
     void setup() {
         produtoRepository.deleteAll();
 
+        Categoria categoria = categoriaRepository.save(new Categoria(null, "Bebidas-"));
+
         produto = new Produto();
         produto.setNome("Cerveja");
         produto.setDescricao("Cerveja artesanal");
         produto.setPrecoUnitario(BigDecimal.valueOf(10.0));
         produto.setQuantidade(50);
+        produto.setCategoria(categoria);
         produto.setStatus(StatusProduto.ATIVO);
 
         produto = produtoRepository.saveAndFlush(produto);
     }
 
     @Test
-    @DisplayName("✅ Deve inativar um produto ativo com sucesso")
+    @DisplayName("Deve inativar um produto ativo com sucesso")
     void deveInativarProdutoComSucesso() {
         produtoService.inativar(produto.getId());
 
@@ -54,7 +62,7 @@ class ProdutoInativarTest {
     }
 
     @Test
-    @DisplayName("⚠️ Não deve inativar produto que já está inativo")
+    @DisplayName("Não deve inativar produto que já está inativo")
     void naoDeveInativarProdutoJaInativo() {
         produto.setStatus(StatusProduto.INATIVO);
         produtoRepository.saveAndFlush(produto);
@@ -64,7 +72,7 @@ class ProdutoInativarTest {
     }
 
     @Test
-    @DisplayName("❌ Não deve inativar produto inexistente")
+    @DisplayName("Não deve inativar produto inexistente")
     void naoDeveInativarProdutoInexistente() {
         assertThrows(ProdutoNaoCadastradoException.class,
                 () -> produtoService.inativar(999L));

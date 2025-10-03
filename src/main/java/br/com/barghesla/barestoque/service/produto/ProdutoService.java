@@ -2,16 +2,17 @@ package br.com.barghesla.barestoque.service.produto;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
-import br.com.barghesla.barestoque.entity.Produto;
+import br.com.barghesla.barestoque.dto.produto.ProdutoRequest;
+import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
 
 @Service
 public interface ProdutoService {
-    Produto criar(Produto produto);
-    Produto atualizar(Long id, Produto produto);
-    void inativar(Long id);
-    Produto ativar(Long id);
-    Produto buscarPorId(Long id);
-    List<Produto> buscarPorNome(String nome);
-    List<Produto> buscarPorCategoria(Long categoriaID);
-    List<Produto> listarTodos();
+    ProdutoResponse criar(ProdutoRequest request);
+    ProdutoResponse atualizar(Long id, ProdutoRequest request);
+    ProdutoResponse inativar(Long id);
+    ProdutoResponse ativar(Long id);
+    ProdutoResponse buscarPorId(Long id);
+    List<ProdutoResponse> buscarPorNome(String nome);
+    List<ProdutoResponse> buscarPorCategoria(Long categoriaID);
+    List<ProdutoResponse> listarTodos();
 }
