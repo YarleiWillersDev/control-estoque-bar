@@ -1,20 +1,22 @@
 package br.com.barghesla.barestoque.service.categoria;
 
+import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
-
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
+@Transactional // Adicionado para rollback automático
 class CategoriaBuscarPorIdTest {
 
     @Autowired
@@ -26,7 +28,7 @@ class CategoriaBuscarPorIdTest {
     @Autowired
     private ProdutoRepository produtoRepository;
 
-    @AfterEach
+    @BeforeEach
     void limparBanco() {
         produtoRepository.deleteAll();
         categoriaRepository.deleteAll();
@@ -35,18 +37,26 @@ class CategoriaBuscarPorIdTest {
     @Test
     @DisplayName("Deve buscar categoria por ID com sucesso")
     void deveBuscarCategoriaPorId() {
-        Categoria categoria = categoriaRepository.save(new Categoria(null, "Bebidas"));
+        // Arrange: Salvar uma categoria no banco para ter um ID válido
+        Categoria categoriaSalva = categoriaRepository.save(new Categoria(null, "Bebidas"));
 
-        Categoria encontrada = categoriaService.buscarPorId(categoria.getId());
+        // Act: Chamar o serviço, que agora retorna um CategoriaResponse
+        CategoriaResponse response = categoriaService.buscarPorId(categoriaSalva.getId());
 
-        assertThat(encontrada).isNotNull();
-        assertThat(encontrada.getNome()).isEqualTo("Bebidas");
+        // Assert: Validar os campos do DTO de resposta
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(categoriaSalva.getId());
+        assertThat(response.nome()).isEqualTo("Bebidas");
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao buscar categoria inexistente")
     void deveLancarExcecaoQuandoCategoriaNaoExistir() {
+        // Arrange
+        long idInexistente = 999L;
+
+        // Act & Assert
         assertThrows(CategoriaNaoEncontradaException.class,
-                () -> categoriaService.buscarPorId(999L));
+                () -> categoriaService.buscarPorId(idInexistente));
     }
 }

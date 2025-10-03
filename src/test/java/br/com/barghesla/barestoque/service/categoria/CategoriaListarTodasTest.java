@@ -1,19 +1,19 @@
 package br.com.barghesla.barestoque.service.categoria;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.List;
-
+import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
+import br.com.barghesla.barestoque.entity.Categoria;
+import br.com.barghesla.barestoque.repository.CategoriaRepository;
+import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.barghesla.barestoque.entity.Categoria;
-import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
-import br.com.barghesla.barestoque.repository.CategoriaRepository;
-import br.com.barghesla.barestoque.repository.ProdutoRepository;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
@@ -30,43 +30,36 @@ class CategoriaListarTodasTest {
 
     @BeforeEach
     void limparBanco() {
-        // ordem correta: primeiro apaga filhos, depois pais
         produtoRepository.deleteAll();
         categoriaRepository.deleteAll();
     }
 
     @Test
+    @DisplayName("Deve retornar uma lista de DTOs de categoria, ordenados por nome")
     void deveRetornarCategoriasOrdenadasQuandoExistirem() {
         // Arrange
-        Categoria c1 = new Categoria();
-        c1.setNome("Bebidas_teste_listar_todas");
-        categoriaRepository.save(c1);
-
-        Categoria c2 = new Categoria();
-        c2.setNome("Aperitivos_teste_listar_todas");
-        categoriaRepository.save(c2);
+        categoriaRepository.save(new Categoria(null, "Bebidas"));
+        categoriaRepository.save(new Categoria(null, "Aperitivos"));
 
         // Act
-        List<Categoria> categorias = categoriaService.listarTodas();
+        // O resultado agora é uma lista de CategoriaResponse
+        List<CategoriaResponse> categorias = categoriaService.listarTodas();
 
         // Assert
-        assertEquals(2, categorias.size());
-        assertEquals("Aperitivos_teste_listar_todas", categorias.get(0).getNome()); // ordem alfabética
-        assertEquals("Bebidas_teste_listar_todas", categorias.get(1).getNome());
+        assertThat(categorias).hasSize(2);
+        // Verifica a ordem alfabética
+        assertThat(categorias.get(0).nome()).isEqualTo("Aperitivos");
+        assertThat(categorias.get(1).nome()).isEqualTo("Bebidas");
     }
 
     @Test
-    void deveLancarExcecaoQuandoNaoExistiremCategorias() {
-        // Act & Assert
-        CategoriaNaoEncontradaException ex = assertThrows(
-            CategoriaNaoEncontradaException.class,
-            () -> categoriaService.listarTodas()
-        );
+    @DisplayName("Deve retornar uma lista vazia quando não existirem categorias")
+    void deveRetornarListaVaziaQuandoNaoExistiremCategorias() {
+        // Act
+        List<CategoriaResponse> categorias = categoriaService.listarTodas();
 
-        assertEquals(
-            "Não existe uma categoria com este nome cadastrada na base de dados!",
-            ex.getMessage()
-        );
+        // Assert
+        // O correto é verificar se a lista está vazia, não esperar uma exceção.
+        assertThat(categorias).isEmpty();
     }
 }
-

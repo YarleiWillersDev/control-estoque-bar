@@ -8,11 +8,12 @@ import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.entity.Produto;
 
-public class ProdutoMapper {
+public final class ProdutoMapper {
+
+    private ProdutoMapper() {}
 
     public static Produto toEntity(ProdutoRequest request, Categoria categoria) {
         Produto produto = new Produto();
-        produto.setId(request.id());
         produto.setNome(request.nome());
         produto.setDescricao(request.descricao());
         produto.setQuantidade(request.quantidade());

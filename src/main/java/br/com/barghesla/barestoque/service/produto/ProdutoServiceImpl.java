@@ -54,7 +54,8 @@ public class ProdutoServiceImpl implements ProdutoService {
         Produto produtoComNovosDados = ProdutoMapper.toEntity(request, categoria);
         produtoValidator.validarAtualizacao(existente, produtoComNovosDados);
         produtoUpdater.aplicar(existente, produtoComNovosDados);
-        return ProdutoMapper.toResponse(existente);
+        Produto produtoAtualizado = produtoRepository.save(existente);
+        return ProdutoMapper.toResponse(produtoAtualizado);
     }
 
     @Override
