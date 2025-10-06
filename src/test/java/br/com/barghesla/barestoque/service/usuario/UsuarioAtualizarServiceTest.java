@@ -1,5 +1,7 @@
 package br.com.barghesla.barestoque.service.usuario;
 
+import br.com.barghesla.barestoque.dto.usuario.UsuarioRequest;
+import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.UsuarioNaoEncontradoException;
@@ -24,12 +26,13 @@ class UsuarioAtualizarServiceTest {
 
     private static String rnd() { return String.valueOf(System.nanoTime()); }
 
+    // Este método auxiliar continua útil para criar o estado inicial no banco
     private Usuario novoUsuarioPersistido(String nome, String email, String perfil, String senha) {
         Usuario u = new Usuario();
         u.setNome(nome);
         u.setEmail(email);
         u.setPerfil(perfil);
-        u.setSenha(senha);
+        u.setSenha(senha); // A senha será 'hasheada' pelo listener da entidade, se houver
         return usuarioRepository.save(u);
     }
 
@@ -37,93 +40,105 @@ class UsuarioAtualizarServiceTest {
     void deveAtualizarDadosBasicosComSucesso() {
         // Arrange
         String sufixo = rnd();
-        Usuario existente = novoUsuarioPersistido("Alice-"+sufixo, "alice"+sufixo+"@ex.com", "ADMIN", "12345678");
+        Usuario existente = novoUsuarioPersistido("Alice-" + sufixo, "alice" + sufixo + "@ex.com", "ADMIN", "12345678");
 
-        Usuario novo = new Usuario();
-        novo.setNome("Alice Silva");
-        novo.setEmail("alice"+sufixo+"@ex.com"); // mesmo e-mail para não disparar checagem
-        novo.setPerfil("USER");
-        novo.setSenha("abcdefgh"); // senha válida
+        // O objeto com os novos dados agora é um UsuarioRequest
+        UsuarioRequest request = new UsuarioRequest(
+                "Alice Silva",
+                "alice" + sufixo + "@ex.com", // mesmo e-mail
+                "abcdefgh",
+                "USER"
+        );
 
         // Act
-        Usuario atualizado = usuarioService.atualizar(existente.getId(), novo);
+        // O método agora retorna um UsuarioResponse
+        UsuarioResponse atualizado = usuarioService.atualizar(existente.getId(), request);
 
         // Assert
-        assertThat(atualizado.getNome()).isEqualTo("Alice Silva");
-        assertThat(atualizado.getEmail()).isEqualTo("alice"+sufixo+"@ex.com");
-        assertThat(atualizado.getPerfil()).isEqualTo("USER");
+        assertThat(atualizado.nome()).isEqualTo("Alice Silva");
+        assertThat(atualizado.email()).isEqualTo("alice" + sufixo + "@ex.com");
+        assertThat(atualizado.perfil()).isEqualTo("USER");
+        assertThat(atualizado.id()).isEqualTo(existente.getId());
     }
 
     @Test
     void deveManterEmailQuandoNaoAlterado() {
         // Arrange
         String sufixo = rnd();
-        Usuario existente = novoUsuarioPersistido("Bob-"+sufixo, "bob"+sufixo+"@ex.com", "ADMIN", "12345678");
+        Usuario existente = novoUsuarioPersistido("Bob-" + sufixo, "bob" + sufixo + "@ex.com", "ADMIN", "12345678");
 
-        Usuario novo = new Usuario();
-        novo.setNome("Bob Atualizado");
-        novo.setEmail(existente.getEmail()); // igual
-        novo.setPerfil("ADMIN");
-        novo.setSenha("87654321");
+        UsuarioRequest request = new UsuarioRequest(
+                "Bob Atualizado",
+                existente.getEmail(), // igual
+                "87654321",
+                "ADMIN"
+        );
 
         // Act
-        Usuario atualizado = usuarioService.atualizar(existente.getId(), novo);
+        UsuarioResponse atualizado = usuarioService.atualizar(existente.getId(), request);
 
         // Assert
-        assertThat(atualizado.getEmail()).isEqualTo(existente.getEmail());
-        assertThat(atualizado.getNome()).isEqualTo("Bob Atualizado");
+        assertThat(atualizado.email()).isEqualTo(existente.getEmail());
+        assertThat(atualizado.nome()).isEqualTo("Bob Atualizado");
     }
 
     @Test
     void deveLancarExcecaoQuandoEmailDuplicadoAoAlterar() {
         // Arrange
         String sufixo = rnd();
-        Usuario u1 = novoUsuarioPersistido("Carol-"+sufixo, "carol"+sufixo+"@ex.com", "USER", "12345678");
-        Usuario u2 = novoUsuarioPersistido("Dave-"+sufixo, "dave"+sufixo+"@ex.com", "USER", "12345678");
+        Usuario u1 = novoUsuarioPersistido("Carol-" + sufixo, "carol" + sufixo + "@ex.com", "USER", "12345678");
+        Usuario u2 = novoUsuarioPersistido("Dave-" + sufixo, "dave" + sufixo + "@ex.com", "USER", "12345678");
 
-        Usuario novo = new Usuario();
-        novo.setNome("Dave Novo");
-        novo.setEmail(u1.getEmail()); // tenta usar e-mail de outro usuário
-        novo.setPerfil("USER");
-        novo.setSenha("abcdefgh");
+        UsuarioRequest request = new UsuarioRequest(
+                "Dave Novo",
+                u1.getEmail(), // tenta usar e-mail de outro usuário
+                "abcdefgh",
+                "USER"
+        );
 
         // Act + Assert
-        assertThatThrownBy(() -> usuarioService.atualizar(u2.getId(), novo))
-            .isInstanceOf(EmailJaExistenteException.class);
+        assertThatThrownBy(() -> usuarioService.atualizar(u2.getId(), request))
+                .isInstanceOf(EmailJaExistenteException.class);
     }
 
     @Test
     void deveLancarExcecaoQuandoUsuarioNaoExiste() {
         // Arrange
-        Usuario novo = new Usuario();
-        novo.setNome("Qualquer");
-        novo.setEmail("qualquer"+rnd()+"@ex.com");
-        novo.setPerfil("USER");
-        novo.setSenha("12345678");
+        UsuarioRequest request = new UsuarioRequest(
+                "Qualquer",
+                "qualquer" + rnd() + "@ex.com",
+                "12345678",
+                "USER"
+        );
+        long idInexistente = 999999L;
 
         // Act + Assert
-        assertThatThrownBy(() -> usuarioService.atualizar(999999L, novo))
-            .isInstanceOf(UsuarioNaoEncontradoException.class);
+        assertThatThrownBy(() -> usuarioService.atualizar(idInexistente, request))
+                .isInstanceOf(UsuarioNaoEncontradoException.class);
     }
 
     @Test
     void devePermitirSenhaNaoInformadaNaAtualizacao() {
         // Arrange
         String sufixo = rnd();
-        Usuario existente = novoUsuarioPersistido("Eve-"+sufixo, "eve"+sufixo+"@ex.com", "ADMIN", "12345678");
+        Usuario existente = novoUsuarioPersistido("Eve-" + sufixo, "eve" + sufixo + "@ex.com", "ADMIN", "senha_antiga_123");
 
-        Usuario novo = new Usuario();
-        novo.setNome("Eve SemSenha");
-        novo.setEmail(existente.getEmail());
-        novo.setPerfil("ADMIN");
-        // senha omitida: comportar-se como “não alterar”
+        UsuarioRequest request = new UsuarioRequest(
+                "Eve SemSenha",
+                existente.getEmail(),
+                null, // Senha omitida (nula) na requisição
+                "USER"
+        );
 
         // Act
-        Usuario atualizado = usuarioService.atualizar(existente.getId(), novo);
+        UsuarioResponse atualizado = usuarioService.atualizar(existente.getId(), request);
 
         // Assert
-        assertThat(atualizado.getNome()).isEqualTo("Eve SemSenha");
-        assertThat(atualizado.getSenha()).isNotNull(); // permanece com a senha anterior
+        assertThat(atualizado.nome()).isEqualTo("Eve SemSenha");
+        assertThat(atualizado.perfil()).isEqualTo("USER");
+        // Não é possível verificar a senha pelo DTO, pois ele corretamente não a expõe.
+        // O teste garante que a operação é concluída com sucesso, confiando
+        // que a lógica do Updater (que deve ser testada em sua própria classe)
+        // ignora a senha nula.
     }
 }
-

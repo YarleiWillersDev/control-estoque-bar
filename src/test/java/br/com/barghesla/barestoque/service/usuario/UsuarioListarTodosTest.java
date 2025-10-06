@@ -4,24 +4,31 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
+
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
 public class UsuarioListarTodosTest {
 
-    @Autowired UsuarioService usuarioService;
-    @Autowired UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioService usuarioService;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
-    private static String rnd(){ return String.valueOf(System.nanoTime()); }
+    private static String rnd() { return String.valueOf(System.nanoTime()); }
 
-    private Usuario novo(String nome){
+    private Usuario novo(String nome) {
         String s = rnd();
         Usuario u = new Usuario();
         u.setNome(nome);
-        u.setEmail("u"+s+"@ex.com");
+        u.setEmail("u" + s + "@ex.com");
         u.setPerfil("USER");
         u.setSenha("12345678");
         return usuarioRepository.save(u);
@@ -29,23 +36,29 @@ public class UsuarioListarTodosTest {
 
     @Test
     void deveListarOrdenadoPorNomeAsc() {
+        // Arrange
         novo("Carlos");
         novo("Ana");
         novo("Bruno");
 
-        var lista = usuarioService.listarTodos();
+        // Act
+        // A variável 'lista' agora é uma List<UsuarioResponse>
+        List<UsuarioResponse> lista = usuarioService.listarTodos();
 
-        assertThat(lista).extracting(Usuario::getNome)
-              .containsSubsequence("Ana", "Bruno", "Carlos");
+        // Assert
+        // A asserção extrai o campo 'nome' do DTO de resposta
+        assertThat(lista).extracting(UsuarioResponse::nome)
+                .containsExactly("Ana", "Bruno", "Carlos");
     }
 
     @Test
     void deveRetornarListaVaziaQuandoNaoHouverUsuarios() {
-        // sem inserts: banco limpo por rollback de outros testes
-        var lista = usuarioService.listarTodos();
+        // Arrange (nenhum usuário criado)
+        
+        // Act
+        List<UsuarioResponse> lista = usuarioService.listarTodos();
+        
+        // Assert
         assertThat(lista).isNotNull().isEmpty();
     }
 }
-
-
-

@@ -3,9 +3,12 @@ package br.com.barghesla.barestoque.service.usuario;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import br.com.barghesla.barestoque.dto.usuario.UsuarioRequest;
+import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.UsuarioNaoEncontradoException;
+import br.com.barghesla.barestoque.mapper.UsuarioMapper;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 import br.com.barghesla.barestoque.updater.usuario.UsuarioUpdater;
 import br.com.barghesla.barestoque.validation.usuario.UsuarioValidator;
@@ -24,58 +27,64 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Usuario salvar(Usuario usuario) {
-        usuarioValidator.validarUsuario(usuario);
-        return usuarioRepository.save(usuario);
+    @Transactional
+    public UsuarioResponse salvar(UsuarioRequest request) {
+        Usuario usuarioNovo = UsuarioMapper.toEntity(request);
+        usuarioValidator.validarUsuario(usuarioNovo);
+        Usuario usuarioSalvo = usuarioRepository.save(usuarioNovo);
+        return UsuarioMapper.toResponse(usuarioSalvo);
     }
 
     @Override
     @Transactional
-    public Usuario atualizar(Long id, Usuario novo) {
+    public UsuarioResponse atualizar(Long id, UsuarioRequest request) {
         Usuario existente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(
                         "Não existe usuário cadastrado para este ID na base de dados."));
 
-        usuarioValidator.validarAtualizacao(existente, novo);
+        Usuario usuarioComNovosDados = UsuarioMapper.toEntity(request);
 
-        if (!equalsIgnoreCase(existente.getEmail(), novo.getEmail())
-                && usuarioRepository.existsByEmailAndIdNot(novo.getEmail(), id)) {
+        usuarioValidator.validarAtualizacao(existente, usuarioComNovosDados);
+        validarEmailUnicoParaAtualizacao(id, existente.getEmail(), usuarioComNovosDados.getEmail());
+
+        String senhaParaPersistir = usuarioComNovosDados.getSenha(); 
+        usuarioUpdater.aplicar(existente, usuarioComNovosDados, senhaParaPersistir);
+
+        Usuario usuarioSalvo = usuarioRepository.save(existente);
+        return UsuarioMapper.toResponse(usuarioSalvo);
+    }
+
+    private void validarEmailUnicoParaAtualizacao(Long idUsuario, String emailAtual, String novoEmail) {
+        if (novoEmail == null || novoEmail.equalsIgnoreCase(emailAtual)) {
+            return;
+        }
+        if (usuarioRepository.existsByEmailAndIdNot(novoEmail, idUsuario)) {
             throw new EmailJaExistenteException("Já existe um usuário com este email cadastrado na base de dados.");
         }
-
-        String senhaParaPersistir = novo.getSenha(); 
-        usuarioUpdater.aplicar(existente, novo, senhaParaPersistir);
-
-        return usuarioRepository.save(existente);
     }
-
-    private boolean equalsIgnoreCase(String a, String b) {
-        if (a == null && b == null)
-            return true;
-        if (a == null || b == null)
-            return false;
-        return a.equalsIgnoreCase(b);
-    }
-
+    
     @Override
     @Transactional
-    public boolean deletar(Long id) {
+    public void deletar(Long id) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
             .orElseThrow(() -> new UsuarioNaoEncontradoException(
                 "Não existe usuário cadastrado para este ID na base de dados."));
         usuarioRepository.deleteById(id);
-        return true;
     }
 
     @Override
-    public List<Usuario> buscarPorNome(String nome) {
+    @Transactional(readOnly = true)
+    public List<UsuarioResponse> buscarPorNome(String nome) {
         String termo = usuarioValidator.validarNomeVazio(nome);
-        return usuarioRepository.findByNomeContainingIgnoreCase(termo);
+        List<Usuario> usuarios = usuarioRepository.findByNomeContainingIgnoreCase(termo);
+        return UsuarioMapper.toResponse(usuarios);
     }
 
     @Override
-    public List<Usuario> listarTodos() {
-        return usuarioRepository.findAllByOrderByNomeAsc();
+    @Transactional(readOnly = true)
+    public List<UsuarioResponse> listarTodos() {
+        List<Usuario> usuarios = usuarioRepository.findAllByOrderByNomeAsc();
+        return UsuarioMapper.toResponse(usuarios);
     }
 
 }
