@@ -5,13 +5,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-public record MovimentacaoRequest(
+public record MovimentacaoEstoqueRequest(
         
         Long id, 
         
         @NotBlank(message = "O tipo da movimetação não pode ser vazio")
         @Size(min = 5, max = 7)
-        String tipo, 
+        String tipo,
         
         @NotNull(message = "A quantida não pode ser vazia")
         @Positive(message = "A quantidade deve ser positiva")

@@ -48,7 +48,7 @@ public class CategoriaServiceImpl implements CategoriaService {
         }
         categoriaUpdater.aplicar(categoriaExistente, categoriaComNovosDados);
         Categoria categoriaAtualizada = categoriaRepository.save(categoriaExistente);
-        return CategoriaMapper.toResponse(categoriaExistente);
+        return CategoriaMapper.toResponse(categoriaAtualizada);
     }
 
     @Override

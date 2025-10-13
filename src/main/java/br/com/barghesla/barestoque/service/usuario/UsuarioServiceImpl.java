@@ -66,7 +66,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public void deletar(Long id) {
-        Usuario usuarioExistente = usuarioRepository.findById(id)
+        usuarioRepository.findById(id)
             .orElseThrow(() -> new UsuarioNaoEncontradoException(
                 "Não existe usuário cadastrado para este ID na base de dados."));
         usuarioRepository.deleteById(id);

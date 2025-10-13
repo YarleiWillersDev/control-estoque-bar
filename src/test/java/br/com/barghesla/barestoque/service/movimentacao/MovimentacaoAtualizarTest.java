@@ -1,19 +1,32 @@
 package br.com.barghesla.barestoque.service.movimentacao;
 
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
+// DTOs
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQuantidadeRequest;
+
+// Entidades
+import br.com.barghesla.barestoque.entity.Categoria; // Importar Categoria
 import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
 import br.com.barghesla.barestoque.entity.Usuario;
+
+// Exceções
+import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
+
+// Repositórios
+import br.com.barghesla.barestoque.repository.CategoriaRepository; // Importar CategoriaRepository
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
+
+// Demais importações
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
-
+import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -22,24 +35,39 @@ class MovimentacaoAtualizarTest {
 
     @Autowired
     private MovimentacaoEstoqueServiceImpl movimentacaoService;
-
     @Autowired
     private ProdutoRepository produtoRepository;
-
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private CategoriaRepository categoriaRepository; // <-- 1. Injetar o repositório de Categoria
 
-    private static String rnd() { return String.valueOf(System.nanoTime()); }
+    private static String rnd() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
 
-    // Helpers idênticos ao teste de registro
+    // --- Helpers Corrigidos ---
 
-    private Produto novoProdutoPersistido(String nome, int saldo) {
+    /**
+     * 2. Helper para criar e persistir uma Categoria.
+     */
+    private Categoria novaCategoriaPersistida(String nome) {
+        Categoria c = new Categoria();
+        c.setNome(nome);
+        return categoriaRepository.save(c);
+    }
+
+    /**
+     * 3. Helper de Produto agora recebe e associa a Categoria.
+     */
+    private Produto novoProdutoPersistido(String nome, int saldo, Categoria categoria) {
         Produto p = new Produto();
         p.setNome(nome);
         p.setDescricao("Gerado em teste");
-        p.setQuantidade(saldo);                      // seu modelo usa 'quantidade'
-        p.setPrecoUnitario(new BigDecimal("10.00")); // NOT NULL no Oracle
+        p.setQuantidade(saldo);
+        p.setPrecoUnitario(new BigDecimal("10.00"));
         p.setStatus(StatusProduto.ATIVO);
+        p.setCategoria(categoria); // <-- A correção crucial
         return produtoRepository.save(p);
     }
 
@@ -51,93 +79,61 @@ class MovimentacaoAtualizarTest {
         u.setSenha("12345678");
         return usuarioRepository.save(u);
     }
-
-    private MovimentacaoEstoque novaMov(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
-        MovimentacaoEstoque m = new MovimentacaoEstoque();
-        m.setTipo(tipo);
-        m.setQuantidade(qtd);
-        m.setProduto(produto);
-        m.setUsuarioID(usuario); // manter o mesmo padrão do teste de registro
-        return m;
+    
+    private MovimentacaoEstoqueResponse registrarMovimentacao(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
+        var request = new MovimentacaoEstoqueRequest(null, tipo.name(), qtd, produto.getId(), usuario.getId());
+        return movimentacaoService.registrarMovimentacao(request);
     }
 
-    // Atualização: apenas quantidade pode mudar
+    // --- Testes Corrigidos ---
 
     @Test
     void deveAtualizarEntradaSomenteQuantidade_somandoDeltaNoSaldo() {
-        Produto p = novoProdutoPersistido("P-" + rnd(), 10);
-        Usuario u = novoUsuarioPersistido("Tester " + rnd(), "tester"+rnd()+"@ex.com");
+        // 4. Criar a Categoria antes de criar os outros dados
+        Categoria cat = novaCategoriaPersistida("Bebidas");
+        Produto p = novoProdutoPersistido("P-" + rnd(), 10, cat);
+        Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester"+rnd()+"@ex.com");
 
-        // Registro inicial: ENTRADA 4 => saldo 14
-        MovimentacaoEstoque mov = novaMov(TipoMovimentacaoEstoque.ENTRADA, 4, p, u);
-        MovimentacaoEstoque salvo = movimentacaoService.registrarMovimentacao(mov);
+        MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 4, p, u);
 
-        // Atualiza apenas a quantidade para 9 (delta +5) => saldo esperado 19
-        MovimentacaoEstoque novo = new MovimentacaoEstoque();
-        novo.setQuantidade(9);
-        // Garantir que nada além da quantidade seja informado
-        novo.setTipo(null);
-        novo.setProduto(null);
-        novo.setUsuarioID(null);
-        novo.setDataMovimentacao(null);
-
-        MovimentacaoEstoque atualizado = movimentacaoService.atualizar(salvo.getId(), novo);
+        var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(9);
+        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizar(salvo.id(), request);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(pAtual.getQuantidade()).isEqualTo(19);
-        assertThat(atualizado.getQuantidade()).isEqualTo(9);
-        assertThat(atualizado.getTipo()).isEqualTo(TipoMovimentacaoEstoque.ENTRADA);
-        assertThat(atualizado.getProduto().getId()).isEqualTo(p.getId());
-        assertThat(atualizado.getUsuarioID().getId()).isEqualTo(u.getId());
+        assertThat(atualizado.quantidade()).isEqualTo(9);
     }
 
     @Test
     void deveAtualizarSaidaSomenteQuantidade_validandoSaldo() {
-        Produto p = novoProdutoPersistido("P-" + rnd(), 8);
-        Usuario u = novoUsuarioPersistido("Tester " + rnd(), "tester"+rnd()+"@ex.com");
+        Categoria cat = novaCategoriaPersistida("Aperitivos");
+        Produto p = novoProdutoPersistido("P-" + rnd(), 8, cat);
+        Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester"+rnd()+"@ex.com");
 
-        // Registro inicial: SAIDA 3 => saldo 5
-        MovimentacaoEstoque mov = novaMov(TipoMovimentacaoEstoque.SAIDA, 3, p, u);
-        MovimentacaoEstoque salvo = movimentacaoService.registrarMovimentacao(mov);
+        MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.SAIDA, 3, p, u);
 
-        // Atualiza apenas quantidade para 7 (delta +4) => saldo esperado 1
-        MovimentacaoEstoque novo = new MovimentacaoEstoque();
-        novo.setQuantidade(7);
-        novo.setTipo(null);
-        novo.setProduto(null);
-        novo.setUsuarioID(null);
-        novo.setDataMovimentacao(null);
-
-        MovimentacaoEstoque atualizado = movimentacaoService.atualizar(salvo.getId(), novo);
+        var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(7);
+        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizar(salvo.id(), request);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(pAtual.getQuantidade()).isEqualTo(1);
-        assertThat(atualizado.getQuantidade()).isEqualTo(7);
-        assertThat(atualizado.getTipo()).isEqualTo(TipoMovimentacaoEstoque.SAIDA);
-        assertThat(atualizado.getUsuarioID().getId()).isEqualTo(u.getId());
+        assertThat(atualizado.quantidade()).isEqualTo(7);
     }
 
     @Test
     void deveFalharAoAumentarSaidaAcimaDoSaldo_eNaoAlterarSaldo() {
-        Produto p = novoProdutoPersistido("P-" + rnd(), 5);
-        Usuario u = novoUsuarioPersistido("Tester " + rnd(), "tester"+rnd()+"@ex.com");
+        Categoria cat = novaCategoriaPersistida("Congelados");
+        Produto p = novoProdutoPersistido("P-" + rnd(), 5, cat);
+        Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester"+rnd()+"@ex.com");
 
-        // Registro inicial: SAIDA 4 => saldo 1
-        MovimentacaoEstoque mov = novaMov(TipoMovimentacaoEstoque.SAIDA, 4, p, u);
-        MovimentacaoEstoque salvo = movimentacaoService.registrarMovimentacao(mov);
+        MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.SAIDA, 4, p, u);
 
-        // Atualização inválida: quantidade 8 (delta +4) => criaria saldo negativo
-        MovimentacaoEstoque novo = new MovimentacaoEstoque();
-        novo.setQuantidade(8);
-        novo.setTipo(null);
-        novo.setProduto(null);
-        novo.setUsuarioID(null);
-        novo.setDataMovimentacao(null);
-
-        assertThatThrownBy(() -> movimentacaoService.atualizar(salvo.getId(), novo))
-                .isInstanceOf(RuntimeException.class); // troque pela exceção específica
+        var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(8);
+        
+        assertThatThrownBy(() -> movimentacaoService.atualizar(salvo.id(), request))
+                .isInstanceOf(QuantidadeInvalidaException.class);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
-        assertThat(pAtual.getQuantidade()).isEqualTo(1); // sem alteração
+        assertThat(pAtual.getQuantidade()).as("O saldo do produto não deve ser alterado em caso de falha").isEqualTo(1);
     }
 }

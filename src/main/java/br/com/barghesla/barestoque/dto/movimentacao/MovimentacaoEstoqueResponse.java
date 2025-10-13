@@ -5,7 +5,7 @@ import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
 
-public record MovimentacaoResponse(
+public record MovimentacaoEstoqueResponse(
         Long id,
         TipoMovimentacaoEstoque tipo,
         Integer quantidade,

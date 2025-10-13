@@ -1,100 +1,101 @@
 package br.com.barghesla.barestoque.service.movimentacao;
 
 import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQuantidadeRequest;
 import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
 import br.com.barghesla.barestoque.entity.Produto;
+import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.exception.movimentacao.MovimentacaoEstoqueInexistenteException;
-import br.com.barghesla.barestoque.exception.movimentacao.ProdutoIdMovimentacaoEstoqueNuloException;
+import br.com.barghesla.barestoque.mapper.MovimentacaoEstoqueMapper;
 import br.com.barghesla.barestoque.repository.MovimentacaoRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
+import br.com.barghesla.barestoque.repository.UsuarioRepository;
 import br.com.barghesla.barestoque.updater.movimentacao.MovimentacaoEstoqueUpdater;
-import br.com.barghesla.barestoque.validation.movimentacao.MovimentacaoEstoqueValidation;
 
 @Service
-public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueService{
+public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueService {
 
     private final MovimentacaoRepository movimentacaoRepository;
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueUpdater movimentacaoEstoqueUpdater;
-    private final MovimentacaoEstoqueValidation movimentacaoEstoqueValidation;
+    private final UsuarioRepository usuarioRepository;
 
-    public MovimentacaoEstoqueServiceImpl(MovimentacaoRepository movimentacaoRepository, ProdutoRepository produtoRepository, MovimentacaoEstoqueUpdater movimentacaoEstoqueUpdater, MovimentacaoEstoqueValidation movimentacaoEstoqueValidation) {
+    public MovimentacaoEstoqueServiceImpl(MovimentacaoRepository movimentacaoRepository,
+            ProdutoRepository produtoRepository, MovimentacaoEstoqueUpdater movimentacaoEstoqueUpdater, UsuarioRepository usuarioRepository) {
         this.movimentacaoRepository = movimentacaoRepository;
         this.produtoRepository = produtoRepository;
         this.movimentacaoEstoqueUpdater = movimentacaoEstoqueUpdater;
-        this.movimentacaoEstoqueValidation = movimentacaoEstoqueValidation;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
     @Transactional
-    public MovimentacaoEstoque registrarMovimentacao(MovimentacaoEstoque mov) {
-        validarEntrada(mov);
-        Produto produto =carregarProdutoGerenciado(mov);
-        aplicarRegras(produto, mov);
-        vincular(produto, mov);
-        return movimentacaoRepository.save(mov);
+    public MovimentacaoEstoqueResponse registrarMovimentacao(MovimentacaoEstoqueRequest request) {
+        MovimentacaoEstoque movimentacaoEstoque = construirMovimentacaoConformeNecessidadesDoRequest(request);
+        movimentacaoEstoqueUpdater.prepararParaRegistrar(movimentacaoEstoque);
+        MovimentacaoEstoque movimentacaoSalva = movimentacaoRepository.save(movimentacaoEstoque);
+        return MovimentacaoEstoqueMapper.toResponse(movimentacaoSalva);
     }
 
-    private void validarEntrada(MovimentacaoEstoque movimentacao) {
-        movimentacaoEstoqueValidation.validarCamposParaRegistro(movimentacao);
-        if (movimentacao.getProduto() == null || movimentacao.getProduto().getId() == null) {
-            throw new ProdutoIdMovimentacaoEstoqueNuloException("Produto não pode ser nulo");
+    private MovimentacaoEstoque construirMovimentacaoConformeNecessidadesDoRequest(MovimentacaoEstoqueRequest request) {
+        if (request.produto() == null || request.usuarioID() == null) {
+            throw new IllegalArgumentException("IDs de produto e usuário são obrigatórios.");
         }
+
+        Produto produto = produtoRepository.findById(request.produto())
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Produto com ID " + request.produto() + " não encontrado."));
+
+        Usuario usuario = usuarioRepository.findById(request.usuarioID())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Usuário com ID " + request.usuarioID() + " não encontrado."));
+
+        MovimentacaoEstoque movimentacao = MovimentacaoEstoqueMapper.toEntity(request);
+
+        movimentacao.setProduto(produto);
+        movimentacao.setUsuarioID(usuario);
+
+        return movimentacao;
     }
 
-    private Produto carregarProdutoGerenciado(MovimentacaoEstoque mov) {
-        Long produtoId = mov.getProduto().getId();
-        return produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado."));
-    }
-
-    private void aplicarRegras(Produto produto, MovimentacaoEstoque mov) {
-        movimentacaoEstoqueUpdater.prepararParaRegistrar(produto, mov);
-    }
-
-    private void vincular(Produto produto, MovimentacaoEstoque mov) {
-        mov.setProduto(produto);
-    }
-
+    @Override
     @Transactional
-    public MovimentacaoEstoque atualizar(Long id, MovimentacaoEstoque novo) {
-        movimentacaoEstoqueValidation.validarCamposParaAtualizarQuantidade(novo);
-        MovimentacaoEstoque atual = carregarMovimentacao(id);
-        Produto produto = carregarProduto(atual.getProduto().getId());
-        movimentacaoEstoqueUpdater.aplicarAtualizacaoSomenteQuantidade(produto, atual, novo);
-        return movimentacaoRepository.save(atual);
-    }
+    public MovimentacaoEstoqueResponse atualizar(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request) {
+        MovimentacaoEstoque movimentacaoAtual = movimentacaoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Movimentação com ID " + id + " não encontrada."));
 
-    private Produto carregarProduto(Long id) {
-        return produtoRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado."));
-    }
+        int novaQuantidade = request.novaQuantidade();
+        movimentacaoEstoqueUpdater.atualizarQuantidade(movimentacaoAtual, novaQuantidade);
 
-    private MovimentacaoEstoque carregarMovimentacao(Long id) {
-        return movimentacaoRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Movimentação não encontrada."));
+        MovimentacaoEstoque movimentacaoSalva = movimentacaoRepository.save(movimentacaoAtual);
+        return MovimentacaoEstoqueMapper.toResponse(movimentacaoSalva);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public MovimentacaoEstoque buscarPorId(Long id) {
-        return movimentacaoRepository.findById(id)
-            .orElseThrow(() -> new MovimentacaoEstoqueInexistenteException(
-                    "Não existem movimentações de estoque para o ID: " + id + " cadastradas na base de dados"));
+    public MovimentacaoEstoqueResponse buscarPorId(Long id) {
+        MovimentacaoEstoque movimentacao = movimentacaoRepository.findById(id)
+                .orElseThrow(() -> new MovimentacaoEstoqueInexistenteException(
+                        "Não existem movimentações de estoque para o ID: " + id + " cadastradas na base de dados"));
+        return MovimentacaoEstoqueMapper.toResponse(movimentacao);
     }
 
     @Override
-    public List<MovimentacaoEstoque> listarTodos() {
-        return movimentacaoRepository.findAllByOrderByDataMovimentacao();
+    @Transactional(readOnly = true)
+    public List<MovimentacaoEstoqueResponse> listarTodos() {
+        List<MovimentacaoEstoque> movimentacoes = movimentacaoRepository.findAllByOrderByDataMovimentacao();
+        return MovimentacaoEstoqueMapper.toResponse(movimentacoes);
     }
 
     @Override
-    public List<MovimentacaoEstoque> buscarPorProduto(Long produtoId) {
-        return movimentacaoRepository.findByProdutoIdOrderByDataMovimentacaoDesc(produtoId);
+    @Transactional(readOnly = true)
+    public List<MovimentacaoEstoqueResponse> buscarPorProduto(Long produtoId) {
+        List<MovimentacaoEstoque> movimentacoes = movimentacaoRepository.findByProdutoIdOrderByDataMovimentacaoDesc(produtoId);
+        return MovimentacaoEstoqueMapper.toResponse(movimentacoes);
     }
 
 }
