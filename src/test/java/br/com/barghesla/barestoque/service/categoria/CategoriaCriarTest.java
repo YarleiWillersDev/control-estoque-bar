@@ -1,6 +1,7 @@
 package br.com.barghesla.barestoque.service.categoria;
 
-import br.com.barghesla.barestoque.entity.Categoria;
+import br.com.barghesla.barestoque.dto.categoria.CategoriaRequest;
+import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaJaExistenteException;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
@@ -11,11 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-@Transactional // garante rollback após cada teste
+@Transactional
 class CategoriaCriarTest {
 
     @Autowired
@@ -29,7 +31,6 @@ class CategoriaCriarTest {
 
     @BeforeEach
     void limparBanco() {
-        // Remover primeiro os produtos (pois dependem da categoria)
         produtoRepository.deleteAll();
         categoriaRepository.deleteAll();
     }
@@ -37,19 +38,26 @@ class CategoriaCriarTest {
     @Test
     @DisplayName("Deve criar uma nova categoria com sucesso")
     void deveCriarCategoriaComSucesso() {
-        Categoria categoria = new Categoria(null, "Bebidas");
-        Categoria salva = categoriaService.criar(categoria);
+        // Arrange: Criar o DTO de requisição
+        CategoriaRequest request = new CategoriaRequest("Bebidas");
 
-        assertNotNull(salva.getId(), "O ID da categoria deve ser gerado");
+        // Act: Chamar o serviço, que agora recebe um request e retorna um response
+        CategoriaResponse response = categoriaService.criar(request);
+
+        // Assert: Validar o DTO de resposta
+        assertNotNull(response.id(), "O ID da categoria não deve ser nulo após a criação.");
+        assertThat(response.nome()).isEqualTo("Bebidas");
     }
 
     @Test
-    @DisplayName("Não deve criar categoria duplicada")
+    @DisplayName("Não deve criar categoria com nome duplicado")
     void naoDeveCriarCategoriaDuplicada() {
-        Categoria categoria = new Categoria(null, "Bebidas");
-        categoriaService.criar(categoria);
+        // Arrange: Criar a primeira categoria usando o DTO
+        CategoriaRequest request = new CategoriaRequest("Bebidas");
+        categoriaService.criar(request);
 
-        assertThatThrownBy(() -> categoriaService.criar(new Categoria(null, "Bebidas")))
+        // Act & Assert: Verificar se a tentativa de criar a mesma categoria lança a exceção correta
+        assertThatThrownBy(() -> categoriaService.criar(new CategoriaRequest("Bebidas")))
                 .isInstanceOf(CategoriaJaExistenteException.class)
                 .hasMessage("Já existe uma categoria com este nome cadastrada na base de dados!");
     }

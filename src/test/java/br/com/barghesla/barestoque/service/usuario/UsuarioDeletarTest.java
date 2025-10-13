@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 @Transactional // rollback após cada teste
@@ -33,24 +34,27 @@ class UsuarioDeletarTest {
     }
 
     @Test
-    void deveDeletarUsuarioExistenteERetornarTrue() {
+    void deveDeletarUsuarioExistenteComSucesso() {
         // Arrange
         String sufixo = rnd();
-        Usuario u = novoUsuarioPersistido("Del-"+sufixo, "del"+sufixo+"@ex.com", "USER", "12345678");
+        Usuario u = novoUsuarioPersistido("Del-" + sufixo, "del" + sufixo + "@ex.com", "USER", "12345678");
+        long idParaDeletar = u.getId();
 
-        // Act
-        boolean resultado = usuarioService.deletar(u.getId());
+        // Act & Assert
+        // Verifica que o método executa sem lançar uma exceção
+        assertDoesNotThrow(() -> usuarioService.deletar(idParaDeletar));
 
-        // Assert
-        assertThat(resultado).isTrue();
-        assertThat(usuarioRepository.findById(u.getId())).isEmpty();
+        // Confirma que o usuário não existe mais no banco de dados
+        assertThat(usuarioRepository.findById(idParaDeletar)).isEmpty();
     }
 
     @Test
     void deveLancarExcecaoQuandoUsuarioNaoExistir() {
-        // Act + Assert
-        assertThatThrownBy(() -> usuarioService.deletar(999999L))
-            .isInstanceOf(UsuarioNaoEncontradoException.class);
+        // Arrange
+        long idInexistente = 999999L;
+
+        // Act & Assert
+        assertThatThrownBy(() -> usuarioService.deletar(idInexistente))
+                .isInstanceOf(UsuarioNaoEncontradoException.class);
     }
 }
-

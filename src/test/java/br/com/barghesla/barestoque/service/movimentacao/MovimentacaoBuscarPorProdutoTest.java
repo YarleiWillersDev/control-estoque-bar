@@ -1,21 +1,29 @@
 package br.com.barghesla.barestoque.service.movimentacao;
 
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
+// DTOs
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
+
+// Entidades
+import br.com.barghesla.barestoque.entity.Categoria; // Importar
 import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
 import br.com.barghesla.barestoque.entity.Usuario;
+
+// Repositórios
+import br.com.barghesla.barestoque.repository.CategoriaRepository; // Importar
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
+
+// Demais importações
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-
+import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -24,22 +32,33 @@ class MovimentacaoBuscarPorProdutoTest {
 
     @Autowired
     private MovimentacaoEstoqueServiceImpl movimentacaoService;
-
     @Autowired
     private ProdutoRepository produtoRepository;
-
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private CategoriaRepository categoriaRepository; // 1. Injetar o repositório
 
-    private static String rnd() { return String.valueOf(System.nanoTime()); }
+    private static String rnd() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
 
-    private Produto novoProdutoPersistido(String nome, int saldo) {
+    // --- Helpers Corrigidos ---
+
+    private Categoria novaCategoriaPersistida(String nome) { // 2. Helper para Categoria
+        Categoria c = new Categoria();
+        c.setNome(nome);
+        return categoriaRepository.save(c);
+    }
+
+    private Produto novoProdutoPersistido(String nome, int saldo, Categoria categoria) { // 3. Helper de Produto atualizado
         Produto p = new Produto();
         p.setNome(nome);
         p.setDescricao("Gerado em teste");
         p.setQuantidade(saldo);
         p.setPrecoUnitario(new BigDecimal("10.00"));
         p.setStatus(StatusProduto.ATIVO);
+        p.setCategoria(categoria); // Associar a categoria persistida
         return produtoRepository.save(p);
     }
 
@@ -51,52 +70,39 @@ class MovimentacaoBuscarPorProdutoTest {
         u.setSenha("12345678");
         return usuarioRepository.save(u);
     }
-
-    private MovimentacaoEstoque movComData(TipoMovimentacaoEstoque tipo, int qtd, Produto p, Usuario u, LocalDateTime data) {
-        MovimentacaoEstoque m = new MovimentacaoEstoque();
-        m.setTipo(tipo);
-        m.setQuantidade(qtd);
-        m.setProduto(p);
-        m.setUsuarioID(u);
-        m.setDataMovimentacao(data);
-        return m;
+    
+    private void registrarMovimentacao(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
+        var request = new MovimentacaoEstoqueRequest(null, tipo.name(), qtd, produto.getId(), usuario.getId());
+        movimentacaoService.registrarMovimentacao(request);
     }
+
+    // --- Teste Corrigido ---
 
     @Test
-    void deveRetornarApenasDoProdutoEmOrdemDesc() {
-        // Arrange
-        Produto p1 = novoProdutoPersistido("P1-" + rnd(), 100);
-        Produto p2 = novoProdutoPersistido("P2-" + rnd(), 200);
-        Usuario u = novoUsuarioPersistido("Tester " + rnd(), "tester"+rnd()+"@ex.com");
+    void deveRetornarApenasDoProdutoEmOrdemDesc() throws InterruptedException {
+        // 4. Criar e persistir as categorias antes dos produtos
+        Categoria cat1 = novaCategoriaPersistida("Bebidas");
+        Categoria cat2 = novaCategoriaPersistida("Salgados");
+        Produto p1 = novoProdutoPersistido("P1-" + rnd(), 100, cat1);
+        Produto p2 = novoProdutoPersistido("P2-" + rnd(), 200, cat2);
+        Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester"+rnd()+"@ex.com");
 
-        LocalDateTime t1 = LocalDateTime.now().minusDays(3);
-        LocalDateTime t2 = LocalDateTime.now().minusDays(1);
-        LocalDateTime t3 = LocalDateTime.now();
+        // Ação: Registrar movimentações
+        registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 10, p1, u);
+        Thread.sleep(10);
+        registrarMovimentacao(TipoMovimentacaoEstoque.SAIDA, 5, p1, u);
+        Thread.sleep(10);
+        registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 7, p1, u);
+        registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 20, p2, u);
 
-        // Para p1: 3 movimentações com datas distintas
-        movimentacaoService.registrarMovimentacao(movComData(TipoMovimentacaoEstoque.ENTRADA, 10, p1, u, t1));
-        movimentacaoService.registrarMovimentacao(movComData(TipoMovimentacaoEstoque.SAIDA,   5,  p1, u, t2));
-        movimentacaoService.registrarMovimentacao(movComData(TipoMovimentacaoEstoque.ENTRADA, 7,  p1, u, t3));
+        // Ação Principal
+        List<MovimentacaoEstoqueResponse> lista = movimentacaoService.buscarPorProduto(p1.getId());
 
-        // Para p2: 1 movimentação para garantir filtragem
-        movimentacaoService.registrarMovimentacao(movComData(TipoMovimentacaoEstoque.ENTRADA, 20, p2, u, t2));
-
-        // Act
-        List<MovimentacaoEstoque> lista = movimentacaoService.buscarPorProduto(p1.getId());
-
-        // Assert: apenas do p1
-        assertThat(lista).isNotEmpty();
-        assertThat(lista).allMatch(m -> m.getProduto().getId().equals(p1.getId()));
-
-        // Assert: ordem decrescente por data
+        // Verificação
+        assertThat(lista).hasSize(3);
+        assertThat(lista).allMatch(m -> m.produto().id().equals(p1.getId()));
         assertThat(lista)
-            .extracting(MovimentacaoEstoque::getDataMovimentacao)
-            .isSortedAccordingTo(java.util.Comparator.reverseOrder());
-
-        // Datas esperadas: t3, t2, t1
-        assertThat(lista.get(0).getDataMovimentacao()).isEqualTo(t3);
-        assertThat(lista.get(1).getDataMovimentacao()).isEqualTo(t2);
-        assertThat(lista.get(2).getDataMovimentacao()).isEqualTo(t1);
+                .extracting(MovimentacaoEstoqueResponse::dataMovimentacao)
+                .isSortedAccordingTo(java.util.Comparator.reverseOrder());
     }
 }
-

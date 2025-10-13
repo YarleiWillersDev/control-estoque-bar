@@ -2,13 +2,15 @@ package br.com.barghesla.barestoque.service.usuario;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
-import br.com.barghesla.barestoque.entity.Usuario;
+
+import br.com.barghesla.barestoque.dto.usuario.UsuarioRequest;
+import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 
 @Service
 public interface UsuarioService {
-    Usuario salvar(Usuario usuario);
-    Usuario atualizar(Long id, Usuario usuario);
-    boolean deletar(Long id);
-    List<Usuario> buscarPorNome(String nome);
-    List<Usuario> listarTodos();
+    UsuarioResponse salvar(UsuarioRequest request);
+    UsuarioResponse atualizar(Long id, UsuarioRequest request);
+    void deletar(Long id);
+    List<UsuarioResponse> buscarPorNome(String nome);
+    List<UsuarioResponse> listarTodos();
 }

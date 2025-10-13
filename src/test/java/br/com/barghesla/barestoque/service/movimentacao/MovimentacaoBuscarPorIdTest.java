@@ -1,6 +1,10 @@
 package br.com.barghesla.barestoque.service.movimentacao;
 
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
+// DTOs
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
+import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
+import br.com.barghesla.barestoque.entity.Categoria;
+// Entidades e Exceções
 import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
@@ -8,13 +12,14 @@ import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.exception.movimentacao.MovimentacaoEstoqueInexistenteException;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
+
+// Demais importações
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
-
+import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -23,14 +28,18 @@ class MovimentacaoBuscarPorIdTest {
 
     @Autowired
     private MovimentacaoEstoqueServiceImpl movimentacaoService;
-
     @Autowired
     private ProdutoRepository produtoRepository;
-
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    private static String rnd() { return String.valueOf(System.nanoTime()); }
+    private static String rnd() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    // --- Helpers ---
+
+    private Categoria categoria = new Categoria();
 
     private Produto novoProdutoPersistido(String nome, int saldo) {
         Produto p = new Produto();
@@ -38,6 +47,7 @@ class MovimentacaoBuscarPorIdTest {
         p.setDescricao("Gerado em teste");
         p.setQuantidade(saldo);
         p.setPrecoUnitario(new BigDecimal("10.00"));
+        p.setCategoria(categoria);
         p.setStatus(StatusProduto.ATIVO);
         return produtoRepository.save(p);
     }
@@ -50,38 +60,42 @@ class MovimentacaoBuscarPorIdTest {
         u.setSenha("12345678");
         return usuarioRepository.save(u);
     }
-
-    private MovimentacaoEstoque novaMov(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
-        MovimentacaoEstoque m = new MovimentacaoEstoque();
-        m.setTipo(tipo);
-        m.setQuantidade(qtd);
-        m.setProduto(produto);
-        m.setUsuarioID(usuario); // manter o mesmo padrão do restante do projeto
-        return m;
+    
+    /**
+     * Helper que simula o registro de uma movimentação via API, usando DTOs.
+     */
+    private MovimentacaoEstoqueResponse registrarMovimentacao(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
+        var request = new MovimentacaoEstoqueRequest(null, tipo.name(), qtd, produto.getId(), usuario.getId());
+        return movimentacaoService.registrarMovimentacao(request);
     }
+
+    // --- Testes Refatorados ---
 
     @Test
     void deveBuscarPorId_comSucesso() {
+        // Preparação
         Produto p = novoProdutoPersistido("P-" + rnd(), 10);
-        Usuario u = novoUsuarioPersistido("Tester " + rnd(), "tester"+rnd()+"@ex.com");
+        Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester"+rnd()+"@ex.com");
+        MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 4, p, u);
 
-        MovimentacaoEstoque mov = novaMov(TipoMovimentacaoEstoque.ENTRADA, 4, p, u);
-        MovimentacaoEstoque salvo = movimentacaoService.registrarMovimentacao(mov);
+        // Ação
+        MovimentacaoEstoqueResponse encontrado = movimentacaoService.buscarPorId(salvo.id());
 
-        MovimentacaoEstoque encontrado = movimentacaoService.buscarPorId(salvo.getId());
-
-        assertThat(encontrado.getId()).isEqualTo(salvo.getId());
-        assertThat(encontrado.getProduto().getId()).isEqualTo(p.getId());
-        assertThat(encontrado.getUsuarioID().getId()).isEqualTo(u.getId());
-        assertThat(encontrado.getTipo()).isEqualTo(TipoMovimentacaoEstoque.ENTRADA);
-        assertThat(encontrado.getQuantidade()).isEqualTo(4);
+        // Verificação - Assertions nos campos do DTO de resposta
+        assertThat(encontrado.id()).isEqualTo(salvo.id());
+        assertThat(encontrado.produto().id()).isEqualTo(p.getId());
+        assertThat(encontrado.usuarioID().id()).isEqualTo(u.getId());
+        assertThat(encontrado.tipo()).isEqualTo(TipoMovimentacaoEstoque.ENTRADA);
+        assertThat(encontrado.quantidade()).isEqualTo(4);
+        assertThat(encontrado.dataMovimentacao()).isNotNull();
     }
 
     @Test
     void deveLancarExcecao_quandoNaoEncontrar() {
-        assertThatThrownBy(() -> movimentacaoService.buscarPorId(999999L))
-            .isInstanceOf(MovimentacaoEstoqueInexistenteException.class)
-            .hasMessageContaining("999999");
+        // Ação e Verificação
+        long idInexistente = 999999L;
+        assertThatThrownBy(() -> movimentacaoService.buscarPorId(idInexistente))
+                .isInstanceOf(MovimentacaoEstoqueInexistenteException.class)
+                .hasMessageContaining(String.valueOf(idInexistente));
     }
 }
-

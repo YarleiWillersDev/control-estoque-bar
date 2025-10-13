@@ -1,138 +1,112 @@
 package br.com.barghesla.barestoque.updater.movimentacao;
 
-import java.time.LocalDateTime;
-import org.springframework.stereotype.Component;
 import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
 import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
-import br.com.barghesla.barestoque.exception.movimentacao.AlteracaoDeDataException;
-import br.com.barghesla.barestoque.exception.movimentacao.AlteracaoDeProdutoException;
-import br.com.barghesla.barestoque.exception.movimentacao.AlteracaoDeTipoException;
-import br.com.barghesla.barestoque.exception.movimentacao.AlteracaoDeUsuarioException;
 import br.com.barghesla.barestoque.exception.movimentacao.TipoDeMovimentacaoEstoqueInvalidoException;
 import br.com.barghesla.barestoque.exception.movimentacao.TipoDeMovimentacaoEstoqueNuloException;
+import br.com.barghesla.barestoque.exception.produto.ProdutoNaoPodeSerNuloException;
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Component
 public class MovimentacaoEstoqueUpdater {
 
-    public void prepararParaRegistrar(Produto produto, MovimentacaoEstoque mov) {
-        validarTipo(mov);
-        garantirData(mov);
-        ajustarSaldo(produto, mov.getTipo(), mov.getQuantidade());
-        vincularProduto(mov, produto);
-    }
+    // -----------------------------------------------------------------------------------------
+    // --- MÉTODOS PÚBLICOS (API da classe) ---
+    // -----------------------------------------------------------------------------------------
 
-    private void validarTipo(MovimentacaoEstoque mov) {
-        if (mov.getTipo() == null) {
-            throw new TipoDeMovimentacaoEstoqueNuloException("Tipo não pode ser nulo.");
+    /**
+     * Prepara uma nova entidade MovimentacaoEstoque para ser registrada.
+     * Este método define a data (se nula) e ajusta o saldo do produto associado.
+     *
+     * @param movimentacao A entidade MovimentacaoEstoque, já com Produto e Usuário vinculados.
+     */
+    public void prepararParaRegistrar(MovimentacaoEstoque movimentacao) {
+        validarDependencias(movimentacao);
+        garantirData(movimentacao);
+
+        Produto produto = movimentacao.getProduto();
+        int quantidade = movimentacao.getQuantidade();
+
+        switch (movimentacao.getTipo()) {
+            case ENTRADA -> somarAoEstoque(produto, quantidade);
+            case SAIDA -> subtrairDoEstoqueComValidacao(produto, quantidade);
+            default -> throw new TipoDeMovimentacaoEstoqueInvalidoException("Tipo de movimentação desconhecido.");
         }
     }
 
-    private void garantirData(MovimentacaoEstoque mov) {
-        if (mov.getDataMovimentacao() == null) {
-            mov.setDataMovimentacao(LocalDateTime.now());
+    /**
+     * Atualiza a quantidade de uma movimentação existente e ajusta o saldo do produto.
+     * O método calcula a diferença (delta) entre a nova e a antiga quantidade e aplica essa
+     * diferença ao estoque do produto.
+     *
+     * @param movimentacao   A entidade de movimentação persistida a ser atualizada.
+     * @param novaQuantidade A nova quantidade para a movimentação.
+     */
+    public void atualizarQuantidade(MovimentacaoEstoque movimentacao, int quantidade) {
+        validarDependencias(movimentacao);
+
+        int quantidadeAntiga = movimentacao.getQuantidade();
+        int delta = quantidade - quantidadeAntiga;
+
+        if (delta == 0) {
+            return; // Nenhuma alteração necessária
+        }
+
+        Produto produto = movimentacao.getProduto();
+
+        switch (movimentacao.getTipo()) {
+            case ENTRADA -> somarAoEstoque(produto, delta);
+            case SAIDA -> subtrairDoEstoqueComValidacao(produto, delta);
+            default -> throw new TipoDeMovimentacaoEstoqueInvalidoException("Tipo de movimentação desconhecido.");
+        }
+
+        // Atualiza a quantidade na própria entidade de movimentação
+        movimentacao.setQuantidade(quantidade);
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // --- MÉTODOS PRIVADOS (Lógica interna) ---
+    // -----------------------------------------------------------------------------------------
+
+    /**
+     * Garante que as dependências essenciais (Produto e Tipo) não são nulas.
+     */
+    private void validarDependencias(MovimentacaoEstoque movimentacao) {
+        if (movimentacao.getProduto() == null) {
+            throw new ProdutoNaoPodeSerNuloException("O produto não pode ser nulo para esta operação.");
+        }
+        if (movimentacao.getTipo() == null) {
+            throw new TipoDeMovimentacaoEstoqueNuloException("O tipo da movimentação não pode ser nulo.");
+        }
+    }
+    
+    /**
+     * Define a data e hora atuais na movimentação se ela ainda não tiver uma.
+     */
+    private void garantirData(MovimentacaoEstoque movimentacao) {
+        if (movimentacao.getDataMovimentacao() == null) {
+            movimentacao.setDataMovimentacao(LocalDateTime.now());
         }
     }
 
-    private void ajustarSaldo(Produto produto, TipoMovimentacaoEstoque tipo, int quantidade) {
-        if (tipo == TipoMovimentacaoEstoque.ENTRADA) {
-            aplicarEntrada(produto, quantidade);
-        } else if (tipo == TipoMovimentacaoEstoque.SAIDA) {
-            aplicarSaida(produto, quantidade);
-        } else {
-            throw new TipoDeMovimentacaoEstoqueInvalidoException("Tipo de movimentação inválido.");
-        }
-    }
-
-    private void aplicarEntrada(Produto produto, int quantidade) {
-        produto.setQuantidade(produto.getQuantidade() + quantidade);
-    }
-
-    private void aplicarSaida(Produto produto, int quantidade) {
-        int saldoAtual = produto.getQuantidade();
-        if (quantidade > saldoAtual) {
-            throw new QuantidadeInvalidaException("Saldo insuficiente para saída.");
-        }
-        produto.setQuantidade(saldoAtual - quantidade);
-    }
-
-    public void aplicarRegistro(Produto produto, MovimentacaoEstoque mov) {
-        ajustarSaldoNoRegistro(produto, mov);
-        vincularProduto(mov, produto);
-        garantirDataQuandoNula(mov);
-    }
-
-    public void aplicarAtualizacaoSomenteQuantidade(Produto produto, MovimentacaoEstoque atual, MovimentacaoEstoque novo) {
-        validarImutaveis(atual, novo);
-        aplicarDeltaDeQuantidade(produto, atual, novo);
-        copiarQuantidade(atual, novo);
-    }
-
-    // Registro
-
-    private void ajustarSaldoNoRegistro(Produto produto, MovimentacaoEstoque mov) {
-        switch (mov.getTipo()) {
-            case ENTRADA -> somar(produto, mov.getQuantidade());
-            case SAIDA   -> subtrairComValidacao(produto, mov.getQuantidade());
-            default      -> throw new IllegalArgumentException("Tipo inválido.");
-        }
-    }
-
-    private void vincularProduto(MovimentacaoEstoque mov, Produto produto) {
-        mov.setProduto(produto);
-    }
-
-    private void garantirDataQuandoNula(MovimentacaoEstoque mov) {
-        if (mov.getDataMovimentacao() == null) {
-            mov.setDataMovimentacao(java.time.LocalDateTime.now());
-        }
-    }
-
-    // Atualização somente quantidade
-
-    private void validarImutaveis(MovimentacaoEstoque atual, MovimentacaoEstoque novo) {
-        if (novo.getTipo() != null && novo.getTipo() != atual.getTipo()) {
-            throw new AlteracaoDeTipoException("Não é permitido alterar o campo TIPO da movimentação");
-        }
-        if (novo.getProduto() != null && !novo.getProduto().getId().equals(atual.getProduto().getId())) {
-            throw new AlteracaoDeProdutoException("Não é permitido alterar o campo PRODUTO da movimentação.");
-        }
-        if (novo.getUsuarioID() != null && !novo.getUsuarioID().getId().equals(atual.getUsuarioID().getId())) {
-            throw new AlteracaoDeUsuarioException("Não é permitido alterar o campo USUARIO da movimentação.");
-        }
-        if (novo.getDataMovimentacao() != null && !novo.getDataMovimentacao().equals(atual.getDataMovimentacao())) {
-            throw new AlteracaoDeDataException("Não é permitido alterar o campo DATA da movimentação.");
-        }
-    }
-
-    private void aplicarDeltaDeQuantidade(Produto produto, MovimentacaoEstoque atual, MovimentacaoEstoque novo) {
-        int delta = novo.getQuantidade() - atual.getQuantidade();
-        if (delta == 0) return;
-
-        switch (atual.getTipo()) {
-            case ENTRADA -> somar(produto, delta);
-            case SAIDA   -> subtrairComValidacao(produto, delta); // delta>0 aumenta retirada
-            default      -> throw new TipoDeMovimentacaoEstoqueInvalidoException("Tipo inválido.");
-        }
-    }
-
-    private void copiarQuantidade(MovimentacaoEstoque atual, MovimentacaoEstoque novo) {
-        atual.setQuantidade(novo.getQuantidade());
-    }
-
-    // Helpers de saldo
-
-    private void somar(Produto produto, int valor) {
+    /**
+     * Adiciona um valor ao estoque do produto.
+     */
+    private void somarAoEstoque(Produto produto, int valor) {
         produto.setQuantidade(produto.getQuantidade() + valor);
     }
 
-    private void subtrairComValidacao(Produto produto, int valor) {
+    /**
+     * Subtrai um valor do estoque do produto, validando se o saldo resultante é suficiente.
+     */
+    private void subtrairDoEstoqueComValidacao(Produto produto, int valor) {
         int saldoResultante = produto.getQuantidade() - valor;
         if (saldoResultante < 0) {
-            throw new QuantidadeInvalidaException("Quantidade insuficiente.");
+            throw new QuantidadeInvalidaException("Operação resultaria em estoque negativo. Saldo insuficiente.");
         }
         produto.setQuantidade(saldoResultante);
     }
 }
-

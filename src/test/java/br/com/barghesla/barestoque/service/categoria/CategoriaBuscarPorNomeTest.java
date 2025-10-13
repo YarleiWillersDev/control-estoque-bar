@@ -1,23 +1,23 @@
 package br.com.barghesla.barestoque.service.categoria;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.List;
-
+import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
+import br.com.barghesla.barestoque.entity.Categoria;
+import br.com.barghesla.barestoque.repository.CategoriaRepository;
+import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.barghesla.barestoque.repository.ProdutoRepository;
-import br.com.barghesla.barestoque.entity.Categoria;
-import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
-import br.com.barghesla.barestoque.repository.CategoriaRepository;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-class CategoriaBuscarPorNomeTest { 
+class CategoriaBuscarPorNomeTest {
 
     @Autowired
     private CategoriaService categoriaService;
@@ -35,31 +35,28 @@ class CategoriaBuscarPorNomeTest {
     }
 
     @Test
+    @DisplayName("Deve retornar uma lista de DTOs quando o nome existir")
     void deveRetornarCategoriaQuandoNomeExistir() {
         // Arrange
-        Categoria categoria = new Categoria();
-        categoria.setNome("Bebidas Teste"); // 🔑 nome único
-        categoriaRepository.saveAndFlush(categoria);
+        categoriaRepository.save(new Categoria(null, "Bebidas Teste"));
 
         // Act
-        List<Categoria> resultado = categoriaService.buscarPorNome("bebidas");
+        // O resultado agora é uma lista de CategoriaResponse
+        List<CategoriaResponse> resultado = categoriaService.buscarPorNome("bebidas");
 
         // Assert
-        assertFalse(resultado.isEmpty());
-        assertEquals("Bebidas Teste", resultado.get(0).getNome());
+        assertThat(resultado).isNotEmpty();
+        assertThat(resultado.get(0).nome()).isEqualTo("Bebidas Teste");
     }
 
     @Test
-    void deveLancarExcecaoQuandoCategoriaNaoForEncontrada() {
-        // Act & Assert
-        CategoriaNaoEncontradaException exception = assertThrows(
-            CategoriaNaoEncontradaException.class,
-            () -> categoriaService.buscarPorNome("naoexiste")
-        );
+    @DisplayName("Deve retornar uma lista vazia quando a categoria não for encontrada")
+    void deveRetornarListaVaziaQuandoCategoriaNaoForEncontrada() {
+        // Act
+        List<CategoriaResponse> resultado = categoriaService.buscarPorNome("naoexiste");
 
-        assertEquals(
-            "Não existe uma categoria com este nome cadastrada na base de dados!",
-            exception.getMessage()
-        );
+        // Assert
+        // A convenção para buscas sem resultado é retornar uma lista vazia, não uma exceção.
+        assertThat(resultado).isEmpty();
     }
 }

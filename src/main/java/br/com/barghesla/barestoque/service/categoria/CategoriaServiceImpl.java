@@ -4,8 +4,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.barghesla.barestoque.dto.categoria.CategoriaRequest;
+import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
 import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
+import br.com.barghesla.barestoque.mapper.CategoriaMapper;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.updater.categoria.CategoriaUpdater;
 import br.com.barghesla.barestoque.validation.categoria.CategoriaValidator;
@@ -25,48 +28,49 @@ public class CategoriaServiceImpl implements CategoriaService {
     }
 
     @Override
-    public Categoria criar(Categoria categoria) {
+    @Transactional
+    public CategoriaResponse criar(CategoriaRequest request) {
+        Categoria categoria = CategoriaMapper.toEntity(request);
         categoriaValidator.validarCategoriaDuplicadaAoCriar(categoria.getNome());
-        return categoriaRepository.save(categoria);
+        Categoria categoriaSalva = categoriaRepository.save(categoria);
+        return CategoriaMapper.toResponse(categoriaSalva);
     }
 
     @Override
     @Transactional
-    public Categoria atualizar(Long id, Categoria categoria) {
-        Categoria existente = categoriaRepository.findById(id)
-                .orElseThrow(() -> new CategoriaNaoEncontradaException(
-                        "Não existem categorias com este id cadastradas na base de dados!"));
-
-        if (categoria.getNome() != null) {
-            categoriaValidator.validarCategoriaDuplicadaAoAtualizar(categoria.getNome(), id);
+    public CategoriaResponse atualizar(Long id, CategoriaRequest request) {
+        Categoria categoriaExistente = categoriaRepository.findById(id)
+            .orElseThrow(() -> new CategoriaNaoEncontradaException(
+                "Não existem categorias com este id cadastradas na base de dados"));
+        Categoria categoriaComNovosDados = CategoriaMapper.toEntity(request);
+        if (categoriaComNovosDados.getNome() != null) {
+            categoriaValidator.validarCategoriaDuplicadaAoAtualizar(categoriaComNovosDados.getNome(), id);
         }
-
-        categoriaUpdater.aplicar(existente, categoria);
-
-        return categoriaRepository.save(existente);
+        categoriaUpdater.aplicar(categoriaExistente, categoriaComNovosDados);
+        Categoria categoriaAtualizada = categoriaRepository.save(categoriaExistente);
+        return CategoriaMapper.toResponse(categoriaAtualizada);
     }
 
     @Override
-    public Categoria buscarPorId(Long id) {
-        return categoriaRepository.findById(id)
+    @Transactional(readOnly = true)
+    public CategoriaResponse buscarPorId(Long id) {
+        Categoria categoriaExistente = categoriaRepository.findById(id)
                 .orElseThrow(() -> new CategoriaNaoEncontradaException(
                         "Não existem categorias para este ID cadastradas na base de dados!"));
+        return CategoriaMapper.toResponse(categoriaExistente);
     }
 
     @Override
-    public List<Categoria> buscarPorNome(String nome) {
+    @Transactional(readOnly = true)
+    public List<CategoriaResponse> buscarPorNome(String nome) {
         List<Categoria> categorias = categoriaRepository.findAllByNomeContainingIgnoreCase(nome);
-        // Se optar por retornar lista vazia, remova a linha abaixo
-        categoriaValidator.validarListaVazia(categorias);
-        return categorias;
+        return CategoriaMapper.toResponse(categorias);
     }
 
     @Override
-    public List<Categoria> listarTodas() {
+    @Transactional(readOnly = true)
+    public List<CategoriaResponse> listarTodas() {
         List<Categoria> categorias = categoriaRepository.findAllByOrderByNomeAsc();
-        // Se optar por retornar lista vazia, remova a linha abaixo
-        categoriaValidator.validarListaVazia(categorias);
-        return categorias;
+        return CategoriaMapper.toResponse(categorias);
     }
-
 }
