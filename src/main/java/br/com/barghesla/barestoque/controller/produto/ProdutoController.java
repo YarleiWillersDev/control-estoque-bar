@@ -62,6 +62,12 @@ public class ProdutoController {
         return ResponseEntity.status(HttpStatus.OK).body(produtosEncotradosPorNome);
     }
 
+    @GetMapping(params = "categoriaId")
+    public ResponseEntity<List<ProdutoResponse>> buscarPorCategoria(@RequestParam Long categoriaId) {
+        List<ProdutoResponse> produtosEncontradosPelaCategoria = produtoService.buscarPorCategoria(categoriaId);
+        return ResponseEntity.status(HttpStatus.OK).body(produtosEncontradosPelaCategoria);
+    }
+
     @GetMapping
     public ResponseEntity<List<ProdutoResponse>> listarTodos () {
         List<ProdutoResponse> listaDeProdutos = produtoService.listarTodos();
