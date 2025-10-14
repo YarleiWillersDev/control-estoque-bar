@@ -1,10 +1,10 @@
 package br.com.barghesla.barestoque.service.produto;
 
 import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
-import br.com.barghesla.barestoque.entity.Categoria;
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
+import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;

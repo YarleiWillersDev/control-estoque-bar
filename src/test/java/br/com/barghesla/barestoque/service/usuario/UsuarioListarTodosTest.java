@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
-import br.com.barghesla.barestoque.entity.Usuario;
+import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 
 import java.util.List;

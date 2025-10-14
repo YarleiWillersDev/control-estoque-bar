@@ -4,17 +4,13 @@ package br.com.barghesla.barestoque.service.movimentacao;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQuantidadeRequest;
-
-// Entidades
-import br.com.barghesla.barestoque.entity.Categoria; // Importar Categoria
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
-import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
-import br.com.barghesla.barestoque.entity.Usuario;
-
 // Exceções
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
-
+import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
+import br.com.barghesla.barestoque.model.TipoMovimentacaoEstoque;
+import br.com.barghesla.barestoque.model.Usuario;
 // Repositórios
 import br.com.barghesla.barestoque.repository.CategoriaRepository; // Importar CategoriaRepository
 import br.com.barghesla.barestoque.repository.ProdutoRepository;

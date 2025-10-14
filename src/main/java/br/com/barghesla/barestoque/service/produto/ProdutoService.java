@@ -11,6 +11,7 @@ public interface ProdutoService {
     ProdutoResponse atualizar(Long id, ProdutoRequest request);
     ProdutoResponse inativar(Long id);
     ProdutoResponse ativar(Long id);
+    ProdutoResponse atualizarStatus(Long id, String novoStatus);
     ProdutoResponse buscarPorId(Long id);
     List<ProdutoResponse> buscarPorNome(String nome);
     List<ProdutoResponse> buscarPorCategoria(Long categoriaID);

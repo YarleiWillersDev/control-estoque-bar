@@ -6,9 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.barghesla.barestoque.dto.categoria.CategoriaRequest;
 import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
-import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
 import br.com.barghesla.barestoque.mapper.CategoriaMapper;
+import br.com.barghesla.barestoque.model.Categoria;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.updater.categoria.CategoriaUpdater;
 import br.com.barghesla.barestoque.validation.categoria.CategoriaValidator;

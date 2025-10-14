@@ -1,11 +1,12 @@
 package br.com.barghesla.barestoque.updater.movimentacao;
 
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
-import br.com.barghesla.barestoque.entity.Produto;
 import br.com.barghesla.barestoque.exception.movimentacao.TipoDeMovimentacaoEstoqueInvalidoException;
 import br.com.barghesla.barestoque.exception.movimentacao.TipoDeMovimentacaoEstoqueNuloException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoNaoPodeSerNuloException;
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
+import br.com.barghesla.barestoque.model.MovimentacaoEstoque;
+import br.com.barghesla.barestoque.model.Produto;
+
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

@@ -1,13 +1,14 @@
 package br.com.barghesla.barestoque.validation.produto;
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
+
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
 import br.com.barghesla.barestoque.exception.produto.PrecoInvalidoException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoJaAtivoException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoJaInativoException;
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
 import br.com.barghesla.barestoque.exception.usuario.NomeObrigatorioException;
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 
 @Component

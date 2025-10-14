@@ -3,8 +3,9 @@ package br.com.barghesla.barestoque.repository;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
+
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
 
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {

@@ -2,9 +2,9 @@ package br.com.barghesla.barestoque.service.usuario;
 
 import br.com.barghesla.barestoque.dto.usuario.UsuarioRequest;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
-import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.UsuarioNaoEncontradoException;
+import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

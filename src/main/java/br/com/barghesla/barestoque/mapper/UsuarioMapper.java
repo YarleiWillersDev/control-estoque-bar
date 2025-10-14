@@ -4,7 +4,7 @@ import java.util.List;
 
 import br.com.barghesla.barestoque.dto.usuario.UsuarioRequest;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
-import br.com.barghesla.barestoque.entity.Usuario;
+import br.com.barghesla.barestoque.model.Usuario;
 
 public final class UsuarioMapper {
 
