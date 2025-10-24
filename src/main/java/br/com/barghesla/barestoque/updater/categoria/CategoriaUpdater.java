@@ -1,7 +1,8 @@
 package br.com.barghesla.barestoque.updater.categoria;
 
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.Categoria;
+
+import br.com.barghesla.barestoque.model.Categoria;
 
 @Component
 public class CategoriaUpdater {

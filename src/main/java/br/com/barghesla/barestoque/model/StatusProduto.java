@@ -1,4 +1,4 @@
-package br.com.barghesla.barestoque.entity;
+package br.com.barghesla.barestoque.model;
 
 public enum StatusProduto {
     ATIVO,

@@ -2,12 +2,13 @@ package br.com.barghesla.barestoque.validation.movimentacao;
 
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
+
 import br.com.barghesla.barestoque.exception.movimentacao.ProdutoIdMovimentacaoEstoqueNuloException;
 import br.com.barghesla.barestoque.exception.movimentacao.QuantidadeMovimentacaoEstoqueNegativaException;
 import br.com.barghesla.barestoque.exception.movimentacao.QuantidadeMovimentacaoEstoqueNulaException;
 import br.com.barghesla.barestoque.exception.movimentacao.TipoDeMovimentacaoEstoqueNuloException;
 import br.com.barghesla.barestoque.exception.movimentacao.UsuarioIdMovimentacaoEstoqueNuloException;
+import br.com.barghesla.barestoque.model.MovimentacaoEstoque;
 
 @Component
 public class MovimentacaoEstoqueValidation {

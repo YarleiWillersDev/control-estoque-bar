@@ -6,8 +6,8 @@ import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
 import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
-import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
+import br.com.barghesla.barestoque.model.MovimentacaoEstoque;
+import br.com.barghesla.barestoque.model.TipoMovimentacaoEstoque;
 
 public final class MovimentacaoEstoqueMapper {
 

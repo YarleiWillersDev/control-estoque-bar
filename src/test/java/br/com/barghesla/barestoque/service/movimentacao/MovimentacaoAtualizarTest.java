@@ -4,17 +4,13 @@ package br.com.barghesla.barestoque.service.movimentacao;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQuantidadeRequest;
-
-// Entidades
-import br.com.barghesla.barestoque.entity.Categoria; // Importar Categoria
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
-import br.com.barghesla.barestoque.entity.TipoMovimentacaoEstoque;
-import br.com.barghesla.barestoque.entity.Usuario;
-
 // Exceções
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
-
+import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
+import br.com.barghesla.barestoque.model.TipoMovimentacaoEstoque;
+import br.com.barghesla.barestoque.model.Usuario;
 // Repositórios
 import br.com.barghesla.barestoque.repository.CategoriaRepository; // Importar CategoriaRepository
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
@@ -97,7 +93,7 @@ class MovimentacaoAtualizarTest {
         MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 4, p, u);
 
         var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(9);
-        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizar(salvo.id(), request);
+        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizarQuantidade(salvo.id(), request);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(pAtual.getQuantidade()).isEqualTo(19);
@@ -113,7 +109,7 @@ class MovimentacaoAtualizarTest {
         MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.SAIDA, 3, p, u);
 
         var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(7);
-        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizar(salvo.id(), request);
+        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizarQuantidade(salvo.id(), request);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(pAtual.getQuantidade()).isEqualTo(1);
@@ -130,7 +126,7 @@ class MovimentacaoAtualizarTest {
 
         var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(8);
         
-        assertThatThrownBy(() -> movimentacaoService.atualizar(salvo.id(), request))
+        assertThatThrownBy(() -> movimentacaoService.atualizarQuantidade(salvo.id(), request))
                 .isInstanceOf(QuantidadeInvalidaException.class);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();

@@ -1,7 +1,8 @@
 package br.com.barghesla.barestoque.updater.usuario;
 
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.Usuario;
+
+import br.com.barghesla.barestoque.model.Usuario;
 
 @Component
 public class UsuarioUpdater {

@@ -1,7 +1,7 @@
 package br.com.barghesla.barestoque.validation.usuario;
 
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.Usuario;
+
 import br.com.barghesla.barestoque.exception.usuario.CampoNomeNuloException;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.EmailObrigatorioException;
@@ -10,6 +10,7 @@ import br.com.barghesla.barestoque.exception.usuario.NomeObrigatorioException;
 import br.com.barghesla.barestoque.exception.usuario.PerfilObrigatorioException;
 import br.com.barghesla.barestoque.exception.usuario.SenhaInvalidaException;
 import br.com.barghesla.barestoque.exception.usuario.UsuarioNullException;
+import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 
 @Component

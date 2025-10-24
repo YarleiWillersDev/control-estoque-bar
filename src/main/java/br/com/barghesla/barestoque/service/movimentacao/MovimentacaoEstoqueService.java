@@ -10,7 +10,7 @@ import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQua
 @Service
 public interface MovimentacaoEstoqueService {
     MovimentacaoEstoqueResponse registrarMovimentacao(MovimentacaoEstoqueRequest request);
-    MovimentacaoEstoqueResponse atualizar(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request);
+    MovimentacaoEstoqueResponse atualizarQuantidade(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request);
     MovimentacaoEstoqueResponse buscarPorId(Long id);
     List<MovimentacaoEstoqueResponse> listarTodos();
     List<MovimentacaoEstoqueResponse> buscarPorProduto(Long produtoId);

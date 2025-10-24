@@ -2,9 +2,9 @@ package br.com.barghesla.barestoque.service.categoria;
 
 import br.com.barghesla.barestoque.dto.categoria.CategoriaRequest;
 import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
-import br.com.barghesla.barestoque.entity.Categoria;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaJaExistenteException;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
+import br.com.barghesla.barestoque.model.Categoria;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;

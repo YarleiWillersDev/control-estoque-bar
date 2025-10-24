@@ -3,7 +3,7 @@ package br.com.barghesla.barestoque.mapper;
 import java.util.List;
 import br.com.barghesla.barestoque.dto.categoria.CategoriaRequest;
 import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
-import br.com.barghesla.barestoque.entity.Categoria;
+import br.com.barghesla.barestoque.model.Categoria;
 
 public final class CategoriaMapper {
 

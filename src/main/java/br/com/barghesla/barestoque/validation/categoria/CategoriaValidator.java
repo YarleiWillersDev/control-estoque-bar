@@ -2,9 +2,10 @@ package br.com.barghesla.barestoque.validation.categoria;
 
 import java.util.List;
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.Categoria;
+
 import br.com.barghesla.barestoque.exception.categoria.CategoriaJaExistenteException;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
+import br.com.barghesla.barestoque.model.Categoria;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 
 @Component

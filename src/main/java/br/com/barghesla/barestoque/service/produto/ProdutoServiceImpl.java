@@ -5,12 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.barghesla.barestoque.dto.produto.ProdutoRequest;
 import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
-import br.com.barghesla.barestoque.entity.Categoria;
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
 import br.com.barghesla.barestoque.exception.categoria.CategoriaNaoEncontradaException;
 import br.com.barghesla.barestoque.exception.produto.ProdutoNaoCadastradoException;
+import br.com.barghesla.barestoque.exception.produto.ProdutoStatusInvalidoException;
 import br.com.barghesla.barestoque.mapper.ProdutoMapper;
+import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import br.com.barghesla.barestoque.updater.produto.ProdutoUpdater;
@@ -78,6 +79,16 @@ public class ProdutoServiceImpl implements ProdutoService {
         produtoValidator.validarAtivacao(existente);
         existente.setStatus(StatusProduto.ATIVO);
         return ProdutoMapper.toResponse(existente);
+    }
+
+    @Override
+    @Transactional
+    public ProdutoResponse atualizarStatus(Long id, String novoStatus) {
+        return switch (novoStatus.toUpperCase()) {
+            case "ATIVO" -> this.ativar(id);
+            case "INATIVO" -> this.inativar(id);
+            default -> throw new ProdutoStatusInvalidoException("Status inválido: " + novoStatus);
+        };
     }
 
     @Override

@@ -6,11 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueRequest;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueResponse;
 import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQuantidadeRequest;
-import br.com.barghesla.barestoque.entity.MovimentacaoEstoque;
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.Usuario;
 import br.com.barghesla.barestoque.exception.movimentacao.MovimentacaoEstoqueInexistenteException;
 import br.com.barghesla.barestoque.mapper.MovimentacaoEstoqueMapper;
+import br.com.barghesla.barestoque.model.MovimentacaoEstoque;
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.MovimentacaoRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
@@ -64,7 +64,7 @@ public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueServic
 
     @Override
     @Transactional
-    public MovimentacaoEstoqueResponse atualizar(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request) {
+    public MovimentacaoEstoqueResponse atualizarQuantidade(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request) {
         MovimentacaoEstoque movimentacaoAtual = movimentacaoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Movimentação com ID " + id + " não encontrada."));
 

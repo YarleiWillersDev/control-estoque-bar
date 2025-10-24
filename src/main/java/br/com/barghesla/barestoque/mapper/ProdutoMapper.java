@@ -5,8 +5,8 @@ import java.util.List;
 import br.com.barghesla.barestoque.dto.categoria.CategoriaResponse;
 import br.com.barghesla.barestoque.dto.produto.ProdutoRequest;
 import br.com.barghesla.barestoque.dto.produto.ProdutoResponse;
-import br.com.barghesla.barestoque.entity.Categoria;
-import br.com.barghesla.barestoque.entity.Produto;
+import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Produto;
 
 public final class ProdutoMapper {
 

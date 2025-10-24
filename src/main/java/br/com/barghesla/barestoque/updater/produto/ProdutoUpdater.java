@@ -1,8 +1,9 @@
 package br.com.barghesla.barestoque.updater.produto;
 
 import org.springframework.stereotype.Component;
-import br.com.barghesla.barestoque.entity.Produto;
-import br.com.barghesla.barestoque.entity.StatusProduto;
+
+import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
 
 @Component
 public class ProdutoUpdater {
