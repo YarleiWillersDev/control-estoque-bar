@@ -64,7 +64,7 @@ public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueServic
 
     @Override
     @Transactional
-    public MovimentacaoEstoqueResponse atualizar(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request) {
+    public MovimentacaoEstoqueResponse atualizarQuantidade(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request) {
         MovimentacaoEstoque movimentacaoAtual = movimentacaoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Movimentação com ID " + id + " não encontrada."));
 

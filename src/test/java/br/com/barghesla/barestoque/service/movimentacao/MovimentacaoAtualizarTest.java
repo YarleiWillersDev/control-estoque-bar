@@ -93,7 +93,7 @@ class MovimentacaoAtualizarTest {
         MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.ENTRADA, 4, p, u);
 
         var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(9);
-        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizar(salvo.id(), request);
+        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizarQuantidade(salvo.id(), request);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(pAtual.getQuantidade()).isEqualTo(19);
@@ -109,7 +109,7 @@ class MovimentacaoAtualizarTest {
         MovimentacaoEstoqueResponse salvo = registrarMovimentacao(TipoMovimentacaoEstoque.SAIDA, 3, p, u);
 
         var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(7);
-        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizar(salvo.id(), request);
+        MovimentacaoEstoqueResponse atualizado = movimentacaoService.atualizarQuantidade(salvo.id(), request);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(pAtual.getQuantidade()).isEqualTo(1);
@@ -126,7 +126,7 @@ class MovimentacaoAtualizarTest {
 
         var request = new MovimentacaoEstoqueUpdateQuantidadeRequest(8);
         
-        assertThatThrownBy(() -> movimentacaoService.atualizar(salvo.id(), request))
+        assertThatThrownBy(() -> movimentacaoService.atualizarQuantidade(salvo.id(), request))
                 .isInstanceOf(QuantidadeInvalidaException.class);
 
         Produto pAtual = produtoRepository.findById(p.getId()).orElseThrow();
