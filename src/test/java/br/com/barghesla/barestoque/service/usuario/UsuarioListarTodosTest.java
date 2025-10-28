@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
+import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 
@@ -29,7 +30,7 @@ public class UsuarioListarTodosTest {
         Usuario u = new Usuario();
         u.setNome(nome);
         u.setEmail("u" + s + "@ex.com");
-        u.setPerfil("USER");
+        u.setPerfil(Perfil.VENDEDOR);;
         u.setSenha("12345678");
         return usuarioRepository.save(u);
     }

@@ -5,6 +5,7 @@ import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.NomeDuplicadoException;
 import br.com.barghesla.barestoque.exception.usuario.SenhaInvalidaException;
+import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class UsuarioSalvarTest {
                 "Yarlei",
                 "yarlei@email.com",
                 "12345678",
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act
@@ -61,7 +62,7 @@ class UsuarioSalvarTest {
                 "Yarlei",
                 "yarlei1@email.com",
                 "12345678",
-                "USER"
+                Perfil.VENDEDOR
         );
         usuarioService.salvar(usuario1);
 
@@ -70,7 +71,7 @@ class UsuarioSalvarTest {
                 "Yarlei", // mesmo nome
                 "yarlei2@email.com",
                 "12345678",
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act & Assert
@@ -85,7 +86,7 @@ class UsuarioSalvarTest {
                 "Rafael",
                 "rafael@email.com",
                 "12345678",
-                "USER"
+                Perfil.VENDEDOR
         );
         usuarioService.salvar(usuario1);
 
@@ -93,7 +94,7 @@ class UsuarioSalvarTest {
                 "Outro Nome",
                 "rafael@email.com", // mesmo email
                 "12345678",
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act & Assert
@@ -108,7 +109,7 @@ class UsuarioSalvarTest {
                 "João",
                 "joao@email.com",
                 "123", // senha muito curta
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act & Assert

@@ -4,6 +4,7 @@ import br.com.barghesla.barestoque.dto.usuario.UsuarioRequest;
 import br.com.barghesla.barestoque.dto.usuario.UsuarioResponse;
 import br.com.barghesla.barestoque.exception.usuario.EmailJaExistenteException;
 import br.com.barghesla.barestoque.exception.usuario.UsuarioNaoEncontradoException;
+import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class UsuarioAtualizarServiceTest {
         Usuario u = new Usuario();
         u.setNome(nome);
         u.setEmail(email);
-        u.setPerfil(perfil);
+        u.setPerfil(Perfil.VENDEDOR);
         u.setSenha(senha); // A senha será 'hasheada' pelo listener da entidade, se houver
         return usuarioRepository.save(u);
     }
@@ -47,7 +48,7 @@ class UsuarioAtualizarServiceTest {
                 "Alice Silva",
                 "alice" + sufixo + "@ex.com", // mesmo e-mail
                 "abcdefgh",
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act
@@ -71,7 +72,7 @@ class UsuarioAtualizarServiceTest {
                 "Bob Atualizado",
                 existente.getEmail(), // igual
                 "87654321",
-                "ADMIN"
+                Perfil.GERENTE
         );
 
         // Act
@@ -93,7 +94,7 @@ class UsuarioAtualizarServiceTest {
                 "Dave Novo",
                 u1.getEmail(), // tenta usar e-mail de outro usuário
                 "abcdefgh",
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act + Assert
@@ -108,7 +109,7 @@ class UsuarioAtualizarServiceTest {
                 "Qualquer",
                 "qualquer" + rnd() + "@ex.com",
                 "12345678",
-                "USER"
+                Perfil.VENDEDOR
         );
         long idInexistente = 999999L;
 
@@ -127,7 +128,7 @@ class UsuarioAtualizarServiceTest {
                 "Eve SemSenha",
                 existente.getEmail(),
                 null, // Senha omitida (nula) na requisição
-                "USER"
+                Perfil.VENDEDOR
         );
 
         // Act

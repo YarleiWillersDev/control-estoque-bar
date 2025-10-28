@@ -72,7 +72,7 @@ public class UsuarioValidator {
     }
 
     public void validarPerfil(Usuario ususario) {
-        if (ususario.getPerfil() == null || ususario.getPerfil().isBlank()) {
+        if (ususario.getPerfil() == null) {
             throw new PerfilObrigatorioException("O campo perfil não pode ser nulo ou vazio!");
         }
     }
@@ -115,7 +115,7 @@ public class UsuarioValidator {
     }
 
     private boolean isPerfilPresente(Usuario usuario) {
-        return usuario.getPerfil() != null && !usuario.getPerfil().isBlank();
+        return usuario.getPerfil() != null;
     }
 
     private boolean safeEqualsIgnoreCase(String a, String b) {
