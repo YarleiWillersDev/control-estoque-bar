@@ -1,6 +1,7 @@
 package br.com.barghesla.barestoque.service.usuario;
 
 import br.com.barghesla.barestoque.exception.usuario.UsuarioNaoEncontradoException;
+import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class UsuarioDeletarTest {
         Usuario u = new Usuario();
         u.setNome(nome);
         u.setEmail(email);
-        u.setPerfil(perfil);
+        u.setPerfil(Perfil.VENDEDOR);
         u.setSenha(senha);
         return usuarioRepository.save(u);
     }

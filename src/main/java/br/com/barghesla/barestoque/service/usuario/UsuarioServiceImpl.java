@@ -2,6 +2,7 @@ package br.com.barghesla.barestoque.service.usuario;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +22,23 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioValidator usuarioValidator;
     private final UsuarioUpdater usuarioUpdater;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, UsuarioValidator usuarioValidator, UsuarioUpdater usuarioUpdater) {
+    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, UsuarioValidator usuarioValidator, UsuarioUpdater usuarioUpdater, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioValidator = usuarioValidator;
         this.usuarioUpdater = usuarioUpdater;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
     public UsuarioResponse salvar(UsuarioRequest request) {
         Usuario usuarioNovo = UsuarioMapper.toEntity(request);
+
+        String senhaCriptografada = passwordEncoder.encode(usuarioNovo.getSenha());
+        usuarioNovo.setSenha(senhaCriptografada);
+
         usuarioValidator.validarUsuario(usuarioNovo);
         Usuario usuarioSalvo = usuarioRepository.save(usuarioNovo);
         return UsuarioMapper.toResponse(usuarioSalvo);
@@ -49,7 +56,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioValidator.validarAtualizacao(existente, usuarioComNovosDados);
         validarEmailUnicoParaAtualizacao(id, existente.getEmail(), usuarioComNovosDados.getEmail());
 
-        String senhaParaPersistir = usuarioComNovosDados.getSenha(); 
+        String senhaParaPersistir = existente.getSenha();
+        if (usuarioComNovosDados.getSenha() != null && !usuarioComNovosDados.getSenha().isBlank()) {
+            senhaParaPersistir = passwordEncoder.encode(usuarioComNovosDados.getSenha());
+        }
+        
         usuarioUpdater.aplicar(existente, usuarioComNovosDados, senhaParaPersistir);
 
         Usuario usuarioSalvo = usuarioRepository.save(existente);

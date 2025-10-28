@@ -7,6 +7,7 @@ import br.com.barghesla.barestoque.dto.movimentacao.MovimentacaoEstoqueUpdateQua
 // Exceções
 import br.com.barghesla.barestoque.exception.produto.QuantidadeInvalidaException;
 import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.model.Produto;
 import br.com.barghesla.barestoque.model.StatusProduto;
 import br.com.barghesla.barestoque.model.TipoMovimentacaoEstoque;
@@ -71,7 +72,7 @@ class MovimentacaoAtualizarTest {
         Usuario u = new Usuario();
         u.setNome(nome);
         u.setEmail(email);
-        u.setPerfil("USER");
+        u.setPerfil(Perfil.VENDEDOR);
         u.setSenha("12345678");
         return usuarioRepository.save(u);
     }

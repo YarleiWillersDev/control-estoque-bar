@@ -12,9 +12,6 @@ public class UsuarioUpdater {
         existente.setNome(novo.getNome());
         existente.setEmail(novo.getEmail());
         existente.setPerfil(novo.getPerfil());
-
-        if (senhaParaPersistir != null && !senhaParaPersistir.isBlank()) {
-            existente.setSenha(senhaParaPersistir);
-        }
+        existente.setSenha(senhaParaPersistir);;
     }
 }
