@@ -21,6 +21,7 @@ import br.com.barghesla.barestoque.dto.produto.ProdutoUpdateStatusRequest;
 import br.com.barghesla.barestoque.service.produto.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -57,6 +58,7 @@ public class ProdutoController {
                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponse.class)))
     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content)
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
 
     public ResponseEntity<ProdutoResponse> atualizarProdutoExistente(
         @Valid @RequestBody ProdutoRequest produtoRequest,
@@ -72,8 +74,9 @@ public class ProdutoController {
                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponse.class)))
     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content)
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
 
-    public ResponseEntity<ProdutoResponse> atualizarStatus(@PathVariable Long id,
+    public ResponseEntity<ProdutoResponse> atualizarStatus(@Parameter(description = "ID do produto que será atualizado o status")@PathVariable Long id,
             @Valid @RequestBody ProdutoUpdateStatusRequest request) {
         ProdutoResponse produtoComStatusAtualizado = produtoService.atualizarStatus(id, request.status());
         return ResponseEntity.status(HttpStatus.OK).body(produtoComStatusAtualizado);
@@ -85,6 +88,7 @@ public class ProdutoController {
                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponse.class)))
     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content)
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
 
     public ResponseEntity<ProdutoResponse> buscarPorId(@Parameter(description = "ID do produto encontrado") @PathVariable Long id) {
         ProdutoResponse produtoEncontradoPeloId = produtoService.buscarPorId(id);
@@ -94,9 +98,10 @@ public class ProdutoController {
     @GetMapping("/buscar")
     @Operation(summary = "Buscar produto pelo nome", description = "Busca o produto referênciado pelo nome passado pelo request")
     @ApiResponse(responseCode = "200", description = "Produto encontrado com sucesso",
-                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponse.class)))
+                 content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProdutoResponse.class))))
     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content)
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
 
     public ResponseEntity<List<ProdutoResponse>> buscarPorNome(
         @Parameter(description = "Nome ou parte do nome do produto a ser pesquisado")
@@ -109,9 +114,10 @@ public class ProdutoController {
     @GetMapping(params = "categoriaId")
     @Operation(summary = "Buscar produto pelo ID da categoria", description = "Busca o produto referênciado pelo ID da categoria passado pelo request")
     @ApiResponse(responseCode = "200", description = "Produto encontrado com sucesso",
-                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponse.class)))
+                 content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProdutoResponse.class))))
     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content)
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Nenhum produto foi encontrado", content = @Content)
 
     public ResponseEntity<List<ProdutoResponse>> buscarPorCategoria(@Parameter(description = "ID da categoria referenciada")@RequestParam Long categoriaId) {
         List<ProdutoResponse> produtosEncontradosPelaCategoria = produtoService.buscarPorCategoria(categoriaId);
@@ -121,9 +127,10 @@ public class ProdutoController {
     @GetMapping
     @Operation(summary = "Buscar todos produtos cadastrados", description = "Busca todos os produtos que estão cadastrados na base de dados")
     @ApiResponse(responseCode = "200", description = "Produtos encontrados com sucesso",
-                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponse.class)))
+                 content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProdutoResponse.class))))
     @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content)
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Nenhum produto foi encontrado", content = @Content)
 
     public ResponseEntity<List<ProdutoResponse>> listarTodos() {
         List<ProdutoResponse> listaDeProdutos = produtoService.listarTodos();
