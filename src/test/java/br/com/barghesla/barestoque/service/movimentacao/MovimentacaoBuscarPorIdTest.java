@@ -65,7 +65,7 @@ class MovimentacaoBuscarPorIdTest {
      * Helper que simula o registro de uma movimentação via API, usando DTOs.
      */
     private MovimentacaoEstoqueResponse registrarMovimentacao(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
-        var request = new MovimentacaoEstoqueRequest(null, tipo.name(), qtd, produto.getId(), usuario.getId());
+        var request = new MovimentacaoEstoqueRequest(tipo.name(), qtd, produto.getId(), usuario.getId());
         return movimentacaoService.registrarMovimentacao(request);
     }
 
@@ -84,7 +84,7 @@ class MovimentacaoBuscarPorIdTest {
         // Verificação - Assertions nos campos do DTO de resposta
         assertThat(encontrado.id()).isEqualTo(salvo.id());
         assertThat(encontrado.produto().id()).isEqualTo(p.getId());
-        assertThat(encontrado.usuarioID().id()).isEqualTo(u.getId());
+        assertThat(encontrado.usuario().id()).isEqualTo(u.getId());
         assertThat(encontrado.tipo()).isEqualTo(TipoMovimentacaoEstoque.ENTRADA);
         assertThat(encontrado.quantidade()).isEqualTo(4);
         assertThat(encontrado.dataMovimentacao()).isNotNull();

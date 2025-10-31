@@ -78,7 +78,7 @@ class MovimentacaoRegistrarTest {
         Categoria cat = novaCategoriaPersistida("Bebidas"); // 4. Criar Categoria
         Produto p = novoProdutoPersistido("P-" + rnd(), 10, cat);
         Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester" + rnd() + "@ex.com");
-        var request = new MovimentacaoEstoqueRequest(null, "ENTRADA", 5, p.getId(), u.getId());
+        var request = new MovimentacaoEstoqueRequest("ENTRADA", 5, p.getId(), u.getId());
 
         // Ação
         MovimentacaoEstoqueResponse salvo = movimentacaoService.registrarMovimentacao(request);
@@ -86,7 +86,7 @@ class MovimentacaoRegistrarTest {
         // Verificação
         Produto atualizado = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(atualizado.getQuantidade()).isEqualTo(15);
-        assertThat(salvo.usuarioID().id()).isEqualTo(u.getId());
+        assertThat(salvo.usuario().id()).isEqualTo(u.getId());
         assertThat(salvo.produto().id()).isEqualTo(p.getId());
     }
 
@@ -96,7 +96,7 @@ class MovimentacaoRegistrarTest {
         Categoria cat = novaCategoriaPersistida("Aperitivos");
         Produto p = novoProdutoPersistido("P-" + rnd(), 12, cat);
         Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester" + rnd() + "@ex.com");
-        var request = new MovimentacaoEstoqueRequest(null, "SAIDA", 7, p.getId(), u.getId());
+        var request = new MovimentacaoEstoqueRequest("SAIDA", 7, p.getId(), u.getId());
 
         // Ação
         MovimentacaoEstoqueResponse salvo = movimentacaoService.registrarMovimentacao(request);
@@ -104,7 +104,7 @@ class MovimentacaoRegistrarTest {
         // Verificação
         Produto atualizado = produtoRepository.findById(p.getId()).orElseThrow();
         assertThat(atualizado.getQuantidade()).isEqualTo(5);
-        assertThat(salvo.usuarioID().id()).isEqualTo(u.getId());
+        assertThat(salvo.usuario().id()).isEqualTo(u.getId());
     }
 
     @Test
@@ -113,7 +113,7 @@ class MovimentacaoRegistrarTest {
         Categoria cat = novaCategoriaPersistida("Salgados");
         Produto p = novoProdutoPersistido("P-" + rnd(), 3, cat);
         Usuario u = novoUsuarioPersistido("Tester-" + rnd(), "tester" + rnd() + "@ex.com");
-        var request = new MovimentacaoEstoqueRequest(null, "SAIDA", 5, p.getId(), u.getId());
+        var request = new MovimentacaoEstoqueRequest("SAIDA", 5, p.getId(), u.getId());
 
         // Ação e Verificação
         assertThatThrownBy(() -> movimentacaoService.registrarMovimentacao(request))

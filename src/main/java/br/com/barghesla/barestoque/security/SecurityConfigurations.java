@@ -19,6 +19,12 @@ public class SecurityConfigurations {
 
     private final SecurityFilter securityFilter;
 
+    private static final String[] SWAGGER_URLS = {
+        "/swagger-ui.html",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+    };
+
     public SecurityConfigurations(SecurityFilter securityFilter) {
         this.securityFilter = securityFilter;
     }
@@ -29,6 +35,7 @@ public class SecurityConfigurations {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                    .requestMatchers(SWAGGER_URLS).permitAll()
                     .requestMatchers(HttpMethod.POST, "/produtos").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.PUT, "/produtos/{id}").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.PATCH, "/produtos/{id}/status").hasRole("GERENTE")
