@@ -62,7 +62,6 @@ class ProdutoAtualizaTest {
     void deveAtualizarProdutoComSucesso() {
         // Preparação: Criar o DTO de requisição com os novos dados
         ProdutoRequest requestComNovosDados = new ProdutoRequest(
-                null,
                 "Cerveja Skol",
                 "Pilsen",
                 20,

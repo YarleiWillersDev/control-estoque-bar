@@ -42,7 +42,7 @@ public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueServic
     }
 
     private MovimentacaoEstoque construirMovimentacaoConformeNecessidadesDoRequest(MovimentacaoEstoqueRequest request) {
-        if (request.produto() == null || request.usuarioID() == null) {
+        if (request.produto() == null || request.usuarioId() == null) {
             throw new IllegalArgumentException("IDs de produto e usuário são obrigatórios.");
         }
 
@@ -50,9 +50,9 @@ public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueServic
                 .orElseThrow(
                         () -> new IllegalArgumentException("Produto com ID " + request.produto() + " não encontrado."));
 
-        Usuario usuario = usuarioRepository.findById(request.usuarioID())
+        Usuario usuario = usuarioRepository.findById(request.usuarioId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Usuário com ID " + request.usuarioID() + " não encontrado."));
+                        "Usuário com ID " + request.usuarioId() + " não encontrado."));
 
         MovimentacaoEstoque movimentacao = MovimentacaoEstoqueMapper.toEntity(request);
 

@@ -70,7 +70,7 @@ class MovimentacaoListarTodosTest {
     }
     
     private void registrarMovimentacao(TipoMovimentacaoEstoque tipo, int qtd, Produto produto, Usuario usuario) {
-        var request = new MovimentacaoEstoqueRequest(null, tipo.name(), qtd, produto.getId(), usuario.getId());
+        var request = new MovimentacaoEstoqueRequest(tipo.name(), qtd, produto.getId(), usuario.getId());
         movimentacaoService.registrarMovimentacao(request);
     }
 
