@@ -30,7 +30,7 @@ public record ProdutoResponse(
         BigDecimal precoUnitario,
 
         @Schema(description = "ID da categoria vinculada ao Produto")
-        CategoriaResponse categoriaID,
+        CategoriaResponse categoria,
 
         @Schema(description = "Status do Produto no sistema",
                 example = "ATIVO",

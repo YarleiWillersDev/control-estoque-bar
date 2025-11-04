@@ -80,6 +80,6 @@ class ProdutoAtualizaTest {
         assertEquals(20, response.quantidade());
         // Comparar BigDecimal com compareTo para evitar problemas de escala
         assertEquals(0, new BigDecimal("5.00").compareTo(response.precoUnitario()));
-        assertEquals("Lanches", response.categoriaID().nome());
+        assertEquals("Lanches", response.categoria().nome());
     }
 }

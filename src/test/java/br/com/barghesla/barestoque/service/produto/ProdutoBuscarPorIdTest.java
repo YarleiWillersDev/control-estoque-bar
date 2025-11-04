@@ -61,7 +61,7 @@ class ProdutoBuscarPorIdTest {
         assertNotNull(response);
         assertEquals(produto.getId(), response.id());
         assertEquals("Cerveja IPA", response.nome());
-        assertEquals("Bebidas-", response.categoriaID().nome());
+        assertEquals("Bebidas-", response.categoria().nome());
     }
 
     @Test
