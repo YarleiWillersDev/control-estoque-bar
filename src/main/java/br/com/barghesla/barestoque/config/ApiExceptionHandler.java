@@ -17,20 +17,21 @@ import java.util.Map;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    private record ErrorResponse(String mensagem) {}
+    private record ErrorResponse(String mensagem) {
+    }
 
     @ExceptionHandler({
+            ProdutoNaoCadastradoException.class,
             UsuarioNaoEncontradoException.class,
             CategoriaNaoEncontradaException.class,
             MovimentacaoEstoqueInexistenteException.class
-            
+
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundExceptions(RuntimeException ex) {
         return new ErrorResponse(ex.getMessage());
     }
 
-    
     @ExceptionHandler({
             ProdutoJaExistenteException.class,
             EmailJaExistenteException.class,
@@ -43,12 +44,10 @@ public class ApiExceptionHandler {
         return new ErrorResponse(ex.getMessage());
     }
 
-    
     @ExceptionHandler({
             PrecoInvalidoException.class,
             ProdutoJaAtivoException.class,
             ProdutoJaInativoException.class,
-            ProdutoNaoCadastradoException.class,
             ProdutoNaoPodeSerNuloException.class,
             ProdutoStatusInvalidoException.class,
             QuantidadeInvalidaException.class,
@@ -77,7 +76,6 @@ public class ApiExceptionHandler {
         return new ErrorResponse(ex.getMessage());
     }
 
-    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -90,4 +88,3 @@ public class ApiExceptionHandler {
         return errors;
     }
 }
-
