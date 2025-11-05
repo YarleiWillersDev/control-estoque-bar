@@ -12,7 +12,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import br.com.barghesla.barestoque.dto.produto.ProdutoRequest;
 import br.com.barghesla.barestoque.model.Categoria;
 import br.com.barghesla.barestoque.model.Produto;
-import br.com.barghesla.barestoque.model.StatusProduto;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -227,6 +226,76 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.precoUnitario").value("10.5"))
                     .andExpect(jsonPath("$.categoria.id").value(this.categoriaSalva.getId()));
                     
+        }
+
+        @Test
+        @WithMockUser(roles = "GERENTE")
+        void deveRetornarStatus400AoAtualizarProdutoComNomeVazio() throws Exception {
+                criarProdutoParaTest();
+
+                long produtoId = produtoSalvo.getId();
+
+                ProdutoRequest novProdutoRequest = new ProdutoRequest(
+                                "",
+                                "Brahma 600ml",
+                                0,
+                                new BigDecimal("10.50"),
+                                1L);
+
+                String requesBodyJson = objectMapper.writeValueAsString(novProdutoRequest);
+
+                mockMvc.perform(put("/produtos/{id}", produtoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requesBodyJson))
+                        .andDo(print())
+                        .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @WithMockUser(roles = "GERENTE")
+        void deveRetornarStatus400AoAtualizarProdutoComQuantidadeNegativa() throws Exception {
+                criarProdutoParaTest();
+
+                long produtoId = produtoSalvo.getId();
+
+                ProdutoRequest produtoRequest = new ProdutoRequest(
+                                "Cerveja Pilsen",
+                                "Brahma 600ml",
+                                -1,
+                                new BigDecimal("10.50"),
+                                1L);
+                
+                String requestBodyJson = objectMapper.writeValueAsString(produtoRequest);
+
+                mockMvc.perform(put("/produtos/{id}", produtoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBodyJson))
+                        .andDo(print())
+                        .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @WithMockUser(roles = "GERENTE")
+        void deveRetornarStatus400AoAtualizarProdutoComPrecoNegativo() throws Exception {
+                criarProdutoParaTest();
+
+                long produtoId = produtoSalvo.getId();
+
+                ProdutoRequest produtoRequest = new ProdutoRequest(
+                                "Cerveja IPA",
+                                "Brahma 600ml",
+                                0,
+                                new BigDecimal("-10.50"),
+                                1L);
+
+                String requestBodyJson = objectMapper.writeValueAsString(produtoRequest);
+
+                mockMvc.perform(put("/produtos/{id}", produtoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBodyJson))
+                        .andDo(print())
+                        .andExpect(status().isBadRequest());
+
         }
     }
 
