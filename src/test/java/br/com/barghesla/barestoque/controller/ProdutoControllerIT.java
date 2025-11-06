@@ -9,9 +9,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import br.com.barghesla.barestoque.dto.produto.ProdutoRequest;
+import br.com.barghesla.barestoque.dto.produto.ProdutoUpdateStatusRequest;
 import br.com.barghesla.barestoque.model.Categoria;
 import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.StatusProduto;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -368,5 +371,99 @@ class ProdutoControllerIT extends BaseIntegrationTest {
         @DisplayName("Testes para testar Atualização de Status de Produtos (PATCH /{id})")
         class AtualizarStatusProdutoTest {
 
+                @Test
+                @WithMockUser(roles = "GERENTE")
+                void deveRetornarStatus200AoAtualizarStatusProdutoComSucesso() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+
+                        String requestBodyJson = objectMapper.writeValueAsString(statusRequest);
+
+                        mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isOk());
+                }
+
+                @Test
+                @WithMockUser(roles = "GERENTE")
+                void deveRetornarStatus400AoAtualizarStatusProdutoSemAlterarStatusAtivar() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(StatusProduto.ATIVO.name());
+                        String requestBodyJson = objectMapper.writeValueAsString(statusRequest);
+
+                        mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isBadRequest());
+                }
+
+                @Test
+                @WithMockUser(roles = "GERENTE")
+                void deveRetornarStatus400AoAtualizarStatusProdutoSemAlterarStatusInativar() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        produto.setStatus(StatusProduto.INATIVO);
+                        produtoRepository.save(produto);
+                        
+
+                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        String requestBodyJson = objectMapper.writeValueAsString(statusRequest);
+
+                        mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isBadRequest());
+                }
+
+                @Test
+                @WithMockUser(roles = "GERENTE")
+                void deveRetornarStatus400AoAtualizarStatusProdutoComStatusInvalido() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest("SEM ATIVACAO");
+                        String requestBodyJson = objectMapper.writeValueAsString(requestStatus);
+
+                        mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isBadRequest());       
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus403AoAtualizarStatusProdutoComUsuarioSemPermissao() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        String requestBodyJson = objectMapper.writeValueAsString(requestStatus);
+
+                        mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isForbidden());       
+                }
+
+                @Test
+                @WithMockUser(roles = "GERENTE")
+                void deveRetornarStatus404AoAtualizarStatusDeProdutoInexistente() throws Exception {
+                        
+                        long id = 999L;
+
+                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        String requestBodyJson = objectMapper.writeValueAsString(requestStatus);
+
+                        mockMvc.perform(patch("/produtos/{id}/status", id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isNotFound());       
+                }
         }
 }
