@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/produtos")
@@ -90,7 +91,7 @@ public class ProdutoController {
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
     @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
 
-    public ResponseEntity<ProdutoResponse> buscarPorId(@Parameter(description = "ID do produto encontrado") @PathVariable Long id) {
+    public ResponseEntity<ProdutoResponse> buscarPorId(@Parameter(description = "ID do produto encontrado") @PathVariable @Min(1) Long id) {
         ProdutoResponse produtoEncontradoPeloId = produtoService.buscarPorId(id);
         return ResponseEntity.status(HttpStatus.OK).body(produtoEncontradoPeloId);
     }
@@ -119,7 +120,7 @@ public class ProdutoController {
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
     @ApiResponse(responseCode = "404", description = "Nenhum produto foi encontrado", content = @Content)
 
-    public ResponseEntity<List<ProdutoResponse>> buscarPorCategoria(@Parameter(description = "ID da categoria referenciada")@RequestParam Long categoriaId) {
+    public ResponseEntity<List<ProdutoResponse>> buscarPorCategoria(@Parameter(description = "ID da categoria referenciada")@RequestParam @Min(1) Long categoriaId) {
         List<ProdutoResponse> produtosEncontradosPelaCategoria = produtoService.buscarPorCategoria(categoriaId);
         return ResponseEntity.status(HttpStatus.OK).body(produtosEncontradosPelaCategoria);
     }

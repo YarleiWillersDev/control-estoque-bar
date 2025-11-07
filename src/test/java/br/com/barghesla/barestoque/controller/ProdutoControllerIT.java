@@ -14,6 +14,7 @@ import br.com.barghesla.barestoque.model.Categoria;
 import br.com.barghesla.barestoque.model.Produto;
 import br.com.barghesla.barestoque.model.StatusProduto;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -172,8 +173,6 @@ class ProdutoControllerIT extends BaseIntegrationTest {
         @Nested
         @DisplayName("Testes para testar Atualização de Produtos (PUT /{id})")
         class AtualizarProdutoTest {
-
-                
 
                 @Test
                 @WithMockUser(roles = "GERENTE")
@@ -465,5 +464,45 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                                 .andDo(print())
                                 .andExpect(status().isNotFound());       
                 }
+        }
+
+        @Nested
+        @DisplayName("Testes para testar Busca pelo id dos Produtos (GET /{id})")
+        class BuscarPorIdProdutoTest {
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoBuscarProdutoComIdCadastradoNoBanco() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        mockMvc.perform(get("/produtos/{id}", produto.getId())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andDo(print())
+                                .andExpect(status().isOk());
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetonarStatus400AoBuscarProdutoComIdNegativoOuZerado() throws Exception {
+                        long idZerado = 0;
+
+                        mockMvc.perform(get("/produtos/{id}", idZerado)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andDo(print())
+                                .andExpect(status().isBadRequest());
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus404AoBuscarProdutoComIdNaoCadastradoNoBanco() throws Exception {
+                        long idNaoExistente = 1;
+
+                        mockMvc.perform(get("/produtos/{id}", idNaoExistente)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andDo(print())
+                                .andExpect(status().isNotFound());
+                }
+
+
         }
 }
