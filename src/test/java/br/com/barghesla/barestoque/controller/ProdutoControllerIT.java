@@ -32,7 +32,6 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                 @WithMockUser(roles = "GERENTE")
                 void deveRetornarStatus201AoCriarProdutoComDadosValidos() throws Exception {
                         Categoria categoria = criarCategoriaParaTeste();
-                        
 
                         ProdutoRequest produtoRequest = new ProdutoRequest(
                                         "Cerveja Brahma",
@@ -375,15 +374,16 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                 void deveRetornarStatus200AoAtualizarStatusProdutoComSucesso() throws Exception {
                         Produto produto = criarProdutoParaTeste();
 
-                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(
+                                        StatusProduto.INATIVO.name());
 
                         String requestBodyJson = objectMapper.writeValueAsString(statusRequest);
 
                         mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isOk());
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isOk());
                 }
 
                 @Test
@@ -391,14 +391,15 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                 void deveRetornarStatus400AoAtualizarStatusProdutoSemAlterarStatusAtivar() throws Exception {
                         Produto produto = criarProdutoParaTeste();
 
-                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(StatusProduto.ATIVO.name());
+                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(
+                                        StatusProduto.ATIVO.name());
                         String requestBodyJson = objectMapper.writeValueAsString(statusRequest);
 
                         mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isBadRequest());
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
                 }
 
                 @Test
@@ -407,16 +408,16 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                         Produto produto = criarProdutoParaTeste();
                         produto.setStatus(StatusProduto.INATIVO);
                         produtoRepository.save(produto);
-                        
 
-                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        ProdutoUpdateStatusRequest statusRequest = new ProdutoUpdateStatusRequest(
+                                        StatusProduto.INATIVO.name());
                         String requestBodyJson = objectMapper.writeValueAsString(statusRequest);
 
                         mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isBadRequest());
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
                 }
 
                 @Test
@@ -428,10 +429,10 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                         String requestBodyJson = objectMapper.writeValueAsString(requestStatus);
 
                         mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isBadRequest());       
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
                 }
 
                 @Test
@@ -439,30 +440,32 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                 void deveRetornarStatus403AoAtualizarStatusProdutoComUsuarioSemPermissao() throws Exception {
                         Produto produto = criarProdutoParaTeste();
 
-                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest(
+                                        StatusProduto.INATIVO.name());
                         String requestBodyJson = objectMapper.writeValueAsString(requestStatus);
 
                         mockMvc.perform(patch("/produtos/{id}/status", produto.getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isForbidden());       
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isForbidden());
                 }
 
                 @Test
                 @WithMockUser(roles = "GERENTE")
                 void deveRetornarStatus404AoAtualizarStatusDeProdutoInexistente() throws Exception {
-                        
+
                         long id = 999L;
 
-                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest(StatusProduto.INATIVO.name());
+                        ProdutoUpdateStatusRequest requestStatus = new ProdutoUpdateStatusRequest(
+                                        StatusProduto.INATIVO.name());
                         String requestBodyJson = objectMapper.writeValueAsString(requestStatus);
 
                         mockMvc.perform(patch("/produtos/{id}/status", id)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isNotFound());       
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isNotFound());
                 }
         }
 
@@ -476,9 +479,9 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                         Produto produto = criarProdutoParaTeste();
 
                         mockMvc.perform(get("/produtos/{id}", produto.getId())
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(print())
-                                .andExpect(status().isOk());
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk());
                 }
 
                 @Test
@@ -487,9 +490,9 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                         long idZerado = 0;
 
                         mockMvc.perform(get("/produtos/{id}", idZerado)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(print())
-                                .andExpect(status().isBadRequest());
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
                 }
 
                 @Test
@@ -498,11 +501,71 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                         long idNaoExistente = 1;
 
                         mockMvc.perform(get("/produtos/{id}", idNaoExistente)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(print())
-                                .andExpect(status().isNotFound());
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isNotFound());
                 }
 
+        }
+
+        @Nested
+        @DisplayName("Testes para testar Busca pelo nome dos Produtos (GET /buscar)")
+        class BuscarPeloNomeProdutoTest {
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoBuscarProdutoPeloNomeCadastrado() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        mockMvc.perform(get("/produtos/buscar")
+                                        .param("nome", produto.getNome())
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$[0].id").value(produto.getId()))
+                                        .andExpect(jsonPath("$[0].nome").value(produto.getNome()));
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoBuscarProdutoPeloNomeCadastradoPassandoParteDoNome() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        String parteDoNome = "Cer";
+
+                        mockMvc.perform(get("/produtos/buscar")
+                                        .param("nome", parteDoNome)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$[0].id").value(produto.getId()))
+                                        .andExpect(jsonPath("$[0].nome").value(produto.getNome()));
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200ComListaVaziaAoBuscaProdutoPorNomeInexistente() throws Exception {
+                        String nome = "Cerveja";
+
+                        mockMvc.perform(get("/produtos/buscar")
+                                        .param("nome", nome)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk());
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus400AoBuscarPorNomeVazio() throws Exception {
+                        String nome = "";
+
+                        mockMvc.perform(get("/produtos/buscar")
+                                        .param("nome", nome)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
+                }
 
         }
+
 }

@@ -4,7 +4,10 @@ import br.com.barghesla.barestoque.exception.categoria.*;
 import br.com.barghesla.barestoque.exception.movimentacao.*;
 import br.com.barghesla.barestoque.exception.produto.*;
 import br.com.barghesla.barestoque.exception.usuario.*;
+import jakarta.validation.ConstraintViolationException;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -86,5 +90,22 @@ public class ApiExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         return errors;
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException ex) {
+        var errors = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> Map.of(
+                        "field", violation.getPropertyPath().toString(),
+                        "message", violation.getMessage()))
+                .collect(Collectors.toList());
+
+        Map<String, Object> body = Map.of(
+                "status", 400,
+                "error", "Validation Error",
+                "messages", errors);
+
+        return ResponseEntity.badRequest().body(body);
     }
 }

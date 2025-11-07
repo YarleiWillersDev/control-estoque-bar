@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ import jakarta.validation.Valid;
 
 
 @RestController
+@Validated
 @RequestMapping("/usuarios")
 @Tag(name = "Usuários", description = "Operações relacionadas aos usuários da API")
 public class UsuarioController {

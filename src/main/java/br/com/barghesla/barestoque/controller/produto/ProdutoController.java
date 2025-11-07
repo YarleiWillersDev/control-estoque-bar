@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +29,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 @RestController
+@Validated
 @RequestMapping("/produtos")
 @Tag(name = "Produtos", description = "Operações relacionadas aos pordutos do estoque")
 public class ProdutoController {
@@ -106,7 +109,7 @@ public class ProdutoController {
 
     public ResponseEntity<List<ProdutoResponse>> buscarPorNome(
         @Parameter(description = "Nome ou parte do nome do produto a ser pesquisado")
-        @RequestParam(name = "nome") String nome) {
+        @RequestParam (name = "nome") @NotBlank String nome) {
             
         List<ProdutoResponse> produtosEncotradosPorNome = produtoService.buscarPorNome(nome);
         return ResponseEntity.status(HttpStatus.OK).body(produtosEncotradosPorNome);
