@@ -55,13 +55,23 @@ public abstract class BaseIntegrationTest {
         return categoriaRepository.save(categoria);
     }
 
-    protected Produto criarProdutoParaTeste() {
+    protected Produto criarProdutoParaTeste() {   
         Produto produto = new Produto();
         produto.setNome("Cerveja Pilsen");
         produto.setDescricao("Schin 600ml");
         produto.setQuantidade(100);
         produto.setPrecoUnitario(new BigDecimal("8.59"));
         produto.setCategoria(criarCategoriaParaTeste());
+        return produtoRepository.save(produto);
+    }
+
+    protected Produto criaProdutoParaTeste(Categoria categoria) {
+        Produto produto = new Produto();
+        produto.setNome("Cerveja Pilsen");
+        produto.setDescricao("Schin 600ml");
+        produto.setQuantidade(100);
+        produto.setPrecoUnitario(new BigDecimal("8.59"));
+        produto.setCategoria(categoria);
         return produtoRepository.save(produto);
     }
 

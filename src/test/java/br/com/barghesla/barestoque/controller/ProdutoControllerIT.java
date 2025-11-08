@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
@@ -568,4 +569,88 @@ class ProdutoControllerIT extends BaseIntegrationTest {
 
         }
 
+        @Nested
+        @DisplayName("Testes para testar Busca pela Categoria do produto (GET categoriaId)")
+        class BuscarPeloIdDaCategoria {
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoBuscarProdutoPelaCategoriaId() throws Exception {
+                        Categoria categoria = criarCategoriaParaTeste();
+                        Produto produto = criaProdutoParaTeste(categoria);
+
+                        mockMvc.perform(get("/produtos")
+                                        .param("categoriaId", categoria.getId().toString())
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$[0].id").value(produto.getId()))
+                                        .andExpect(jsonPath("$[0].nome").value(produto.getNome()));
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarnStatus200AoBuscarProdutoComCategoriaIdInexistente() throws Exception {
+                        Categoria categoria = new Categoria(1L, "bebidas");
+
+                        mockMvc.perform(get("/produtos")
+                                        .param("categoriaId", categoria.getId().toString())
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(content().json("[]"));
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus400AoBuscarProdutoComCategoriaZeradaOuNegativa() throws Exception {
+
+                        mockMvc.perform(get("/produtos")
+                                        .param("categoriaId", "0")
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
+
+                        mockMvc.perform(get("/produtos")
+                                        .param("categoriaId", "-1")
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isBadRequest());
+                }
+        }
+
+        @Nested
+        @DisplayName("Teste para testar busca de todos os Produtos cadastrados (GET /produtos)")
+        class ListarTodosProdutosTest {
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoListarTodosOsProdutos() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+
+                        int expectedQuantity = 1;
+
+                        mockMvc.perform(get("/produtos")
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$[0].id").value(produto.getId()))
+                                        .andExpect(jsonPath("$[0].nome").value(produto.getNome()))
+                                        .andExpect(jsonPath("$.length()").value(expectedQuantity))
+                                        .andExpect(jsonPath("$[0].categoria.id").value(produto.getCategoria().getId()))
+                                        .andExpect(jsonPath("$[0].categoria.nome").value("Bebidas"));
+
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoListarTodosProdutosSemProdutosCadastrados() throws Exception {
+
+                        mockMvc.perform(get("/produtos")
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(content().json("[]"));
+                }
+        }
 }
