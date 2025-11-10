@@ -29,7 +29,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @Validated
-@RequestMapping("/categorias")
+@RequestMapping("/categoria")
 @Tag(name = "Categoria", description = "Operações as categorias do estoque")
 public class CategoriaController {
 

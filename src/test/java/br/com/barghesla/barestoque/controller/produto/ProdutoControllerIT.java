@@ -1,4 +1,4 @@
-package br.com.barghesla.barestoque.controller;
+package br.com.barghesla.barestoque.controller.produto;
 
 import java.math.BigDecimal;
 
@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import br.com.barghesla.barestoque.controller.BaseIntegrationTest;
 import br.com.barghesla.barestoque.dto.produto.ProdutoRequest;
 import br.com.barghesla.barestoque.dto.produto.ProdutoUpdateStatusRequest;
 import br.com.barghesla.barestoque.model.Categoria;
