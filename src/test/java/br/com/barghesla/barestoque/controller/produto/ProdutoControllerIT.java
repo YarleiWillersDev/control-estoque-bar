@@ -488,7 +488,7 @@ class ProdutoControllerIT extends BaseIntegrationTest {
 
                 @Test
                 @WithMockUser(roles = "VENDEDOR")
-                void deveRetonarStatus400AoBuscarProdutoComIdNegativoOuZerado() throws Exception {
+                void deveRetornarStatus400AoBuscarProdutoComIdNegativoOuZerado() throws Exception {
                         long idZerado = 0;
 
                         mockMvc.perform(get("/produtos/{id}", idZerado)
@@ -591,7 +591,7 @@ class ProdutoControllerIT extends BaseIntegrationTest {
 
                 @Test
                 @WithMockUser(roles = "VENDEDOR")
-                void deveRetornarnStatus200AoBuscarProdutoComCategoriaIdInexistente() throws Exception {
+                void deveRetornarStatus200AoBuscarProdutoComCategoriaIdInexistente() throws Exception {
                         Categoria categoria = new Categoria(1L, "bebidas");
 
                         mockMvc.perform(get("/produtos")
