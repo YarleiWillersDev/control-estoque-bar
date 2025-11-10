@@ -621,7 +621,7 @@ class ProdutoControllerIT extends BaseIntegrationTest {
         }
 
         @Nested
-        @DisplayName("Teste para testar busca de todos os Produtos cadastrados (GET /produtos)")
+        @DisplayName("Teste para testar Busca de todos os Produtos cadastrados (GET /produtos)")
         class ListarTodosProdutosTest {
 
                 @Test
@@ -629,7 +629,7 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                 void deveRetornarStatus200AoListarTodosOsProdutos() throws Exception {
                         Produto produto = criarProdutoParaTeste();
 
-                        int expectedQuantity = 1;
+                        int quantidadeEsperada = 1;
 
                         mockMvc.perform(get("/produtos")
                                         .contentType(MediaType.APPLICATION_JSON))
@@ -637,7 +637,7 @@ class ProdutoControllerIT extends BaseIntegrationTest {
                                         .andExpect(status().isOk())
                                         .andExpect(jsonPath("$[0].id").value(produto.getId()))
                                         .andExpect(jsonPath("$[0].nome").value(produto.getNome()))
-                                        .andExpect(jsonPath("$.length()").value(expectedQuantity))
+                                        .andExpect(jsonPath("$.length()").value(quantidadeEsperada))
                                         .andExpect(jsonPath("$[0].categoria.id").value(produto.getCategoria().getId()))
                                         .andExpect(jsonPath("$[0].categoria.nome").value("Bebidas"));
 

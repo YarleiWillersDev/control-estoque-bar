@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -333,5 +334,48 @@ public class CategoriaControllerIT extends BaseIntegrationTest {
                     .andDo(print())
                     .andExpect(status().isForbidden());
         }
+    }
+
+    @Nested
+    @DisplayName("Teste para testar a Busca de todas as Categorias cadastradas (GET /categoria)")
+    class ListarTodasCategoriasTest {
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoBuscarCategorias() throws Exception {
+            Categoria categoria = criarCategoriaParaTeste();
+
+            int quantidadeEsperada = 1;
+
+            mockMvc.perform(get("/categoria")
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(categoria.getId()))
+                    .andExpect(jsonPath("$[0].nome").value(categoria.getNome()))
+                    .andExpect(jsonPath("$.length()").value(quantidadeEsperada));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200ComListaVaziaAoBuscarCategorias() throws Exception {
+
+            mockMvc.perform(get("/categoria")
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(content().json("[]"));
+        }
+
+        @Test
+        void deveRetornarStatus200AoBuscarCategoriasComUsuarioNaoAutenticado() throws Exception {
+            criarCategoriaParaTeste();
+
+            mockMvc.perform(get("/categoria")
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isForbidden());
+        }
+
     }
 }
