@@ -101,7 +101,7 @@ public class CategoriaControllerIT extends BaseIntegrationTest {
 
     @Nested
     @DisplayName("Teste para testar a Atualização de Categoria (PUT /{id})")
-    class AtualizarCategoria {
+    class AtualizarCategoriaTest {
 
         @Test
         @WithMockUser(roles = "GERENTE")
@@ -197,8 +197,8 @@ public class CategoriaControllerIT extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Test para testar a Busca por ID de Categoria (GET /{id})")
-    class BuscarCategoriaPorId {
+    @DisplayName("Teste para testar a Busca por ID de Categoria (GET /{id})")
+    class BuscarPorIdCategoriaTest {
 
         @Test
         @WithMockUser(roles = "VENDEDOR")
@@ -250,5 +250,88 @@ public class CategoriaControllerIT extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.mensagem").exists());
         }
 
+    }
+
+    @Nested
+    @DisplayName("Teste para testar a Busca por nome de Categoria (GET /buscar)")
+    class BuscarPorNomeCategoriaTest {
+        
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoBuscarCategoriaPorNome() throws Exception {
+            Categoria categoria = criarCategoriaParaTeste();
+
+            mockMvc.perform(get("/categoria/buscar")
+                    .param("nome", categoria.getNome())
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(categoria.getId()))
+                    .andExpect(jsonPath("$[0].nome").value(categoria.getNome()));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoBuscarCategoriaPorNomeComParteDoNome() throws Exception {
+            Categoria categoria = criarCategoriaParaTeste();
+
+            String parteNome = "Beb";
+
+            mockMvc.perform(get("/categoria/buscar")
+                    .param("nome", parteNome)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(categoria.getId()))
+                    .andExpect(jsonPath("$[0].nome").value(categoria.getNome()));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200ComListaVaziaAoBuscarCategoriaComNomeNaoCadastrado() throws Exception {
+            String nome = "Bebidas";
+
+            mockMvc.perform(get("/categoria/buscar")
+                    .param("nome", nome)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk());   
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200ComListaVaziaAoBuscarCategoriaComNomeVazio() throws Exception {
+            String nome = "";
+
+            mockMvc.perform(get("/categoria/buscar")
+                    .param("nome", nome)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk());   
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus400AoBuscarCategoriaComNomeNull() throws Exception {
+            String nome = null;
+
+            mockMvc.perform(get("/categoria/buscar")
+                    .param("nome", nome)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest()); 
+
+        }
+
+        @Test
+        void deveRetornarStatus403AoBuscarCategoriaComUsuarioNaoAutenticado() throws Exception {
+            Categoria categoria = criarCategoriaParaTeste();
+
+            mockMvc.perform(get("/categoria/buscar")
+                    .param("nome", categoria.getNome())
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isForbidden());
+        }
     }
 }
