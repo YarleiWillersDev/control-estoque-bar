@@ -1,5 +1,6 @@
 package br.com.barghesla.barestoque.controller.usuario;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -579,6 +580,63 @@ public class UsuarioControllerIT extends BaseIntegrationTest {
                     .content(requestBodyJson))
                     .andDo(print())
                     .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    @DisplayName("Teste para testar Exclusão de Usuario (DELETE {id})")
+    class DeletarUsuarioTest {
+
+        @Test
+        @WithMockUser(roles = "GERENTE")
+        void deveRetornarStatus204AoDeletarUsuarioComSucesso() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+
+                long usuarioId = usuario.getId();
+
+                mockMvc.perform(delete("/usuarios/{id}", usuarioId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isNoContent());
+
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus403AoDeletarUsuarioComPerfilSemPermissao() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+
+                long usuarioId = usuario.getId();
+
+                mockMvc.perform(delete("/usuarios/{id}", usuarioId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void deveRetornarStatus403AoDeletarUsuarioComUsuarioNaoAutenticado() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+
+                long usuarioId = usuario.getId();
+
+                mockMvc.perform(delete("/usuarios/{id}", usuarioId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "GERENTE")
+        void deveRetornarStatus404AoDeletarUsuarioComIdNaoCadastrado() throws Exception {
+                criarUsuarioGerenteParaTeste();
+
+                long usuarioId = 999L;
+
+                mockMvc.perform(delete("/usuarios/{id}", usuarioId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isNotFound());
         }
     }
 }
