@@ -12,7 +12,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.MovimentacaoRepository;
 import br.com.barghesla.barestoque.repository.ProdutoRepository;
@@ -73,6 +75,24 @@ public abstract class BaseIntegrationTest {
         produto.setPrecoUnitario(new BigDecimal("8.59"));
         produto.setCategoria(categoria);
         return produtoRepository.save(produto);
+    }
+
+    protected Usuario criarUsuarioGerenteParaTeste() {
+        Usuario usuario = new Usuario();
+        usuario.setNome("Yarlei");
+        usuario.setEmail("yarlei@email");
+        usuario.setSenha("Antena2000ACG");
+        usuario.setPerfil(Perfil.GERENTE);
+        return usuarioRepository.save(usuario);
+    }
+
+    protected Usuario criarUsuarioVendedorParaTeste() {
+        Usuario usuario = new Usuario();
+        usuario.setNome("Gabriel");
+        usuario.setEmail("gabriel@email");
+        usuario.setSenha("Antena2000ACG");
+        usuario.setPerfil(Perfil.VENDEDOR);
+        return usuarioRepository.save(usuario);
     }
 
 }
