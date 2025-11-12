@@ -98,11 +98,7 @@ public abstract class BaseIntegrationTest {
         return usuarioRepository.save(usuario);
     }
 
-    protected MovimentacaoEstoque criarMovimentacaoEstoqueTeste() {
-        Categoria categoria = criarCategoriaParaTeste();
-        Produto produto = criaProdutoParaTeste(categoria);
-        Usuario usuario = criarUsuarioVendedorParaTeste();
-
+    protected MovimentacaoEstoque criarMovimentacaoEstoqueTeste(Produto produto, Usuario usuario) {
         MovimentacaoEstoque movimentacaoEstoque = new MovimentacaoEstoque();
         movimentacaoEstoque.setTipo(TipoMovimentacaoEstoque.ENTRADA);
         movimentacaoEstoque.setQuantidade(50);

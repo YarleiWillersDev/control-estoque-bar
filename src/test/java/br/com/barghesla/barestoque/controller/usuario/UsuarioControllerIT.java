@@ -542,7 +542,7 @@ public class UsuarioControllerIT extends BaseIntegrationTest {
 
         @Test
         @WithMockUser(roles = "GERENTE")
-        void deveRetornarStatus400AoAtualizarUsuarioComIdInexistentee() throws Exception {
+        void deveRetornarStatus404AoAtualizarUsuarioComIdInexistentee() throws Exception {
             criarUsuarioGerenteParaTeste();
 
             long usuarioId = 999L;

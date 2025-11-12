@@ -64,7 +64,7 @@ public class MovimentacaoEstoqueController {
         @Valid @RequestBody MovimentacaoEstoqueUpdateQuantidadeRequest request, 
         @Parameter(description = "ID utilizado para atualizar quantidade da movimentação") @PathVariable long id) {
 
-        MovimentacaoEstoqueResponse movimentacaoAtualizada = movimentacaoEstoqueService.atualizarQuantidade(id,request);
+        MovimentacaoEstoqueResponse movimentacaoAtualizada = movimentacaoEstoqueService.atualizarQuantidade(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(movimentacaoAtualizada);
     }
 
