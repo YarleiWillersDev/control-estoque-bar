@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -723,6 +724,51 @@ public class UsuarioControllerIT extends BaseIntegrationTest {
 
                 mockMvc.perform(get("/usuarios/buscar")
                         .param("nome", usuario.getNome())
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isForbidden());
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Teste para testar Busca por todos os Usuários cadastrados (GET /usuarios)")
+    class ListarTodosUsuariosTest {
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoListarTodosUsuariosCadastrados() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+                Usuario usuario2 = criarUsuarioVendedorParaTeste();
+
+                int quantidadeEsperada = 2;
+
+                mockMvc.perform(get("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.length()").value(quantidadeEsperada))
+                        .andExpect(jsonPath("$[*].id", containsInAnyOrder(usuario.getId().intValue(), usuario2.getId().intValue())))
+                        .andExpect(jsonPath("$[*].nome", containsInAnyOrder(usuario.getNome(), usuario2.getNome())));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoListarTodosUsuariosComListaVazia() throws Exception {
+
+                mockMvc.perform(get("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(content().json("[]"));
+        }
+
+        @Test
+        void deveRetornarStatus403AoListarTodosUsuariosComUsuarioNaoAutenticado() throws Exception {
+                criarUsuarioGerenteParaTeste();
+                criarUsuarioVendedorParaTeste();
+
+                mockMvc.perform(get("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON))
                         .andDo(print())
                         .andExpect(status().isForbidden());
