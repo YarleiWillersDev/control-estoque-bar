@@ -1,6 +1,7 @@
 package br.com.barghesla.barestoque.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.barghesla.barestoque.model.Categoria;
+import br.com.barghesla.barestoque.model.MovimentacaoEstoque;
 import br.com.barghesla.barestoque.model.Perfil;
 import br.com.barghesla.barestoque.model.Produto;
+import br.com.barghesla.barestoque.model.TipoMovimentacaoEstoque;
 import br.com.barghesla.barestoque.model.Usuario;
 import br.com.barghesla.barestoque.repository.CategoriaRepository;
 import br.com.barghesla.barestoque.repository.MovimentacaoRepository;
@@ -45,10 +48,10 @@ public abstract class BaseIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        usuarioRepository.deleteAll();
         movimentacaoRepository.deleteAll();
         produtoRepository.deleteAll();
         categoriaRepository.deleteAll();
+        usuarioRepository.deleteAll();
     }
 
     protected Categoria criarCategoriaParaTeste() {
@@ -93,6 +96,20 @@ public abstract class BaseIntegrationTest {
         usuario.setSenha("Antena2000ACG");
         usuario.setPerfil(Perfil.VENDEDOR);
         return usuarioRepository.save(usuario);
+    }
+
+    protected MovimentacaoEstoque criarMovimentacaoEstoqueTeste() {
+        Categoria categoria = criarCategoriaParaTeste();
+        Produto produto = criaProdutoParaTeste(categoria);
+        Usuario usuario = criarUsuarioVendedorParaTeste();
+
+        MovimentacaoEstoque movimentacaoEstoque = new MovimentacaoEstoque();
+        movimentacaoEstoque.setTipo(TipoMovimentacaoEstoque.ENTRADA);
+        movimentacaoEstoque.setQuantidade(50);
+        movimentacaoEstoque.setDataMovimentacao(LocalDateTime.now());
+        movimentacaoEstoque.setProduto(produto);
+        movimentacaoEstoque.setUsuarioID(usuario);
+        return movimentacaoRepository.save(movimentacaoEstoque);
     }
 
 }

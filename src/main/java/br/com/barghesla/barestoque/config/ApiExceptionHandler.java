@@ -108,4 +108,12 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.badRequest().body(body);
     }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleGeneric(Exception ex) {
+        // Opcional: logue o erro, se desejar
+        return new ErrorResponse("Erro interno inesperado. Por favor, entre em contato com o suporte.");
+    }
+
 }
