@@ -1,5 +1,6 @@
 package br.com.barghesla.barestoque.controller.movimentacao;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -339,7 +340,7 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
         }
 
         @Nested
-        @DisplayName("Teste para testar Atualização de Movimentacao de Estoque (POST /{id})")
+        @DisplayName("Teste para testar Atualização de Movimentação de Estoque (POST /{id})")
         class AtualizarMovimentacaoEstoqueTest {
 
                 @Test
@@ -474,4 +475,69 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
                                         .andExpect(status().isNotFound());
                 }
         }
+
+        @Nested
+        @DisplayName("Teste para testar Busca de Movimentação de Estoque através do ID (GET /{id})")
+        class BuscarPorIdMovimentacaoEstoqueTest {
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoBuscarMovimentacaoEstoquePorIdValido() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        Usuario usuario = criarUsuarioVendedorParaTeste();
+                        MovimentacaoEstoque movimentacao = criarMovimentacaoEstoqueTeste(produto, usuario);
+
+                        long movimentacaoId = movimentacao.getId();
+
+                        String requestBodyJson = objectMapper.writeValueAsString(movimentacao);
+
+                        mockMvc.perform(get("/movimentacoes/{id}", movimentacaoId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").exists())
+                                .andExpect(jsonPath("$.tipo").value("ENTRADA"))
+                                .andExpect(jsonPath("$.quantidade").value(50))
+                                .andExpect(jsonPath("$.produto.id").value(produto.getId()))
+                                .andExpect(jsonPath("$.usuario.id").value(usuario.getId()));
+                }
+
+                @Test
+                void deveRetornarStatus403AoBuscarMovimentacaoEstoqueComUsuarioNaoAutenticado() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        Usuario usuario = criarUsuarioVendedorParaTeste();
+                        MovimentacaoEstoque movimentacao = criarMovimentacaoEstoqueTeste(produto, usuario);
+
+                        long movimentacaoId = movimentacao.getId();
+
+                        String requestBodyJson = objectMapper.writeValueAsString(movimentacao);
+
+                        mockMvc.perform(get("/movimentacoes/{id}", movimentacaoId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isForbidden());
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus404AoBuscarMovimentacaoEstoqueComIdNaoCadastrado() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        Usuario usuario = criarUsuarioVendedorParaTeste();
+                        MovimentacaoEstoque movimentacao = criarMovimentacaoEstoqueTeste(produto, usuario);
+
+                        long movimentacaoId = 999L;
+
+                        String requestBodyJson = objectMapper.writeValueAsString(movimentacao);
+
+                        mockMvc.perform(get("/movimentacoes/{id}", movimentacaoId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBodyJson))
+                                .andDo(print())
+                                .andExpect(status().isNotFound());
+                }
+        }
+
+        
 }
