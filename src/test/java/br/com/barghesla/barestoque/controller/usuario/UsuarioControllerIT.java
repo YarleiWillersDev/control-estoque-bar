@@ -1,9 +1,11 @@
 package br.com.barghesla.barestoque.controller.usuario;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -638,5 +640,93 @@ public class UsuarioControllerIT extends BaseIntegrationTest {
                         .andDo(print())
                         .andExpect(status().isNotFound());
         }
+    }
+
+    @Nested
+    @DisplayName("Teste para testar Busca de Usuario pelo nome (GET /buscar)")
+    class BuscarPorNomeUsuarioTest {
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoBuscarUsuarioPeloNome() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+
+                mockMvc.perform(get("/usuarios/buscar")
+                        .param("nome", usuario.getNome())
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$[0].id").value(usuario.getId()))
+                        .andExpect(jsonPath("$[0].nome").value(usuario.getNome()));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200AoBuscarUsuarioComParteDoNome() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+
+                String parteDoNome = "Yar";
+
+                mockMvc.perform(get("/usuarios/buscar")
+                        .param("nome", parteDoNome)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$[0].id").value(usuario.getId()))
+                        .andExpect(jsonPath("$[0].nome").value(usuario.getNome()));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus200ComListaVaziaAoBuscarUsuariosNaoCadastrados() throws Exception {
+                String nome = "Yarlei";
+
+                mockMvc.perform(get("/usuarios/buscar")
+                        .param("nome", nome)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(content().json("[]"));
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus400AoBuscarUsuarioComNomeVazio() throws Exception {
+                criarUsuarioGerenteParaTeste();
+
+                String nome = "";
+
+                mockMvc.perform(get("/usuarios/buscar")
+                        .param("nome", nome)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @WithMockUser(roles = "VENDEDOR")
+        void deveRetornarStatus400AoBuscarUsuarioComNomeNull() throws Exception {
+                criarUsuarioGerenteParaTeste();
+
+                String nome = null;
+
+                mockMvc.perform(get("/usuarios/buscar")
+                        .param("nome", nome)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void deveRetornarStatus403AoBuscarUsuarioPeloNomeComUsuarioNaoAutenticado() throws Exception {
+                Usuario usuario = criarUsuarioGerenteParaTeste();
+
+                mockMvc.perform(get("/usuarios/buscar")
+                        .param("nome", usuario.getNome())
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isForbidden());
+        }
+
     }
 }
