@@ -493,15 +493,15 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
                         String requestBodyJson = objectMapper.writeValueAsString(movimentacao);
 
                         mockMvc.perform(get("/movimentacoes/{id}", movimentacaoId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").exists())
-                                .andExpect(jsonPath("$.tipo").value("ENTRADA"))
-                                .andExpect(jsonPath("$.quantidade").value(50))
-                                .andExpect(jsonPath("$.produto.id").value(produto.getId()))
-                                .andExpect(jsonPath("$.usuario.id").value(usuario.getId()));
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.id").exists())
+                                        .andExpect(jsonPath("$.tipo").value("ENTRADA"))
+                                        .andExpect(jsonPath("$.quantidade").value(50))
+                                        .andExpect(jsonPath("$.produto.id").value(produto.getId()))
+                                        .andExpect(jsonPath("$.usuario.id").value(usuario.getId()));
                 }
 
                 @Test
@@ -515,10 +515,10 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
                         String requestBodyJson = objectMapper.writeValueAsString(movimentacao);
 
                         mockMvc.perform(get("/movimentacoes/{id}", movimentacaoId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isForbidden());
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isForbidden());
                 }
 
                 @Test
@@ -533,10 +533,10 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
                         String requestBodyJson = objectMapper.writeValueAsString(movimentacao);
 
                         mockMvc.perform(get("/movimentacoes/{id}", movimentacaoId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBodyJson))
-                                .andDo(print())
-                                .andExpect(status().isNotFound());
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(requestBodyJson))
+                                        .andDo(print())
+                                        .andExpect(status().isNotFound());
                 }
         }
 
@@ -552,25 +552,25 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
                         MovimentacaoEstoque movimentacao = criarMovimentacaoEstoqueTeste(produto, usuario);
 
                         mockMvc.perform(get("/movimentacoes")
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(print())
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].id").exists())
-                                .andExpect(jsonPath("$[0].tipo").value("ENTRADA"))
-                                .andExpect(jsonPath("$[0].quantidade").value(movimentacao.getQuantidade()))
-                                .andExpect(jsonPath("$[0].produto.id").value(produto.getId()))
-                                .andExpect(jsonPath("$[0].usuario.id").value(usuario.getId()));
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$[0].id").exists())
+                                        .andExpect(jsonPath("$[0].tipo").value("ENTRADA"))
+                                        .andExpect(jsonPath("$[0].quantidade").value(movimentacao.getQuantidade()))
+                                        .andExpect(jsonPath("$[0].produto.id").value(produto.getId()))
+                                        .andExpect(jsonPath("$[0].usuario.id").value(usuario.getId()));
                 }
 
                 @Test
                 @WithMockUser(roles = "VENDEDOR")
                 void deveRetornarStatus200AoListarTodasMovimentacoesEstoqueRetornaListaVazia() throws Exception {
-       
+
                         mockMvc.perform(get("/movimentacoes")
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(print())
-                                .andExpect(status().isOk())
-                                .andExpect(content().json("[]"));
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(content().json("[]"));
                 }
 
                 @Test
@@ -580,11 +580,61 @@ public class MovimentacaoEstoqueControllerIT extends BaseIntegrationTest {
                         criarMovimentacaoEstoqueTeste(produto, usuario);
 
                         mockMvc.perform(get("/movimentacoes")
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(print())
-                                .andExpect(status().isForbidden());
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isForbidden());
                 }
         }
 
-        
+        @Nested
+        @DisplayName("Teste para testar Busca de Movimentação de Estoque através do ID do Produto (GET /produtoId)")
+        class BuscarPorProdutoIdMovimentacaoEstoqueTest {
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus200AoBuscarMovimentacoesEstoquePorProdutoIdCadastrado() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        Usuario usuario = criarUsuarioVendedorParaTeste();
+                        MovimentacaoEstoque movimentacao = criarMovimentacaoEstoqueTeste(produto, usuario);
+
+                        long produtoId = produto.getId();
+
+                        mockMvc.perform(get("/movimentacoes/{produtoId}", produtoId)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.id").value(movimentacao.getId()))
+                                        .andExpect(jsonPath("$.produto.id").value(produto.getId()))
+                                        .andExpect(jsonPath("$.usuario.id").value(usuario.getId()));
+                }
+
+                @Test
+                void deveRetornarStatus200AoBuscarMovimentacoesEstoquePorProdutoIdComUsuarioNaoAutenticado() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        Usuario usuario = criarUsuarioVendedorParaTeste();
+                        criarMovimentacaoEstoqueTeste(produto, usuario);
+
+                        long produtoId = produto.getId();
+
+                        mockMvc.perform(get("/movimentacoes/{produtoId}", produtoId)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isForbidden());
+                }
+
+                @Test
+                @WithMockUser(roles = "VENDEDOR")
+                void deveRetornarStatus404AoBuscarMovimentacoesEstoquePorProdutoIdNaoCadastrado() throws Exception {
+                        Produto produto = criarProdutoParaTeste();
+                        Usuario usuario = criarUsuarioVendedorParaTeste();
+                        criarMovimentacaoEstoqueTeste(produto, usuario);
+
+                        long produtoId = 999L;
+
+                        mockMvc.perform(get("/movimentacoes/{produtoId}", produtoId)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andDo(print())
+                                        .andExpect(status().isNotFound());
+                }
+        }
 }
