@@ -4,7 +4,10 @@ import br.com.barghesla.barestoque.exception.categoria.*;
 import br.com.barghesla.barestoque.exception.movimentacao.*;
 import br.com.barghesla.barestoque.exception.produto.*;
 import br.com.barghesla.barestoque.exception.usuario.*;
+import jakarta.validation.ConstraintViolationException;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,24 +16,26 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    private record ErrorResponse(String mensagem) {}
+    private record ErrorResponse(String mensagem) {
+    }
 
     @ExceptionHandler({
+            ProdutoNaoCadastradoException.class,
             UsuarioNaoEncontradoException.class,
             CategoriaNaoEncontradaException.class,
             MovimentacaoEstoqueInexistenteException.class
-            
+
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundExceptions(RuntimeException ex) {
         return new ErrorResponse(ex.getMessage());
     }
 
-    
     @ExceptionHandler({
             ProdutoJaExistenteException.class,
             EmailJaExistenteException.class,
@@ -43,12 +48,10 @@ public class ApiExceptionHandler {
         return new ErrorResponse(ex.getMessage());
     }
 
-    
     @ExceptionHandler({
             PrecoInvalidoException.class,
             ProdutoJaAtivoException.class,
             ProdutoJaInativoException.class,
-            ProdutoNaoCadastradoException.class,
             ProdutoNaoPodeSerNuloException.class,
             ProdutoStatusInvalidoException.class,
             QuantidadeInvalidaException.class,
@@ -77,7 +80,6 @@ public class ApiExceptionHandler {
         return new ErrorResponse(ex.getMessage());
     }
 
-    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -89,5 +91,29 @@ public class ApiExceptionHandler {
         });
         return errors;
     }
-}
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException ex) {
+        var errors = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> Map.of(
+                        "field", violation.getPropertyPath().toString(),
+                        "message", violation.getMessage()))
+                .collect(Collectors.toList());
+
+        Map<String, Object> body = Map.of(
+                "status", 400,
+                "error", "Validation Error",
+                "messages", errors);
+
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleGeneric(Exception ex) {
+        // Opcional: logue o erro, se desejar
+        return new ErrorResponse("Erro interno inesperado. Por favor, entre em contato com o suporte.");
+    }
+
+}

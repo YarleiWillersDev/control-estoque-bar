@@ -39,6 +39,8 @@ public class SecurityConfigurations {
                     .requestMatchers(HttpMethod.POST, "/produtos").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.PUT, "/produtos/{id}").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.PATCH, "/produtos/{id}/status").hasRole("GERENTE")
+                    .requestMatchers(HttpMethod.POST, "/categoria").hasRole("GERENTE")
+                    .requestMatchers(HttpMethod.PUT, "/categoria/{id}").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.POST, "/usuarios").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.PUT, "/usuarios/{id}").hasRole("GERENTE")
                     .requestMatchers(HttpMethod.DELETE, "/usuarios/{id}").hasRole("GERENTE")

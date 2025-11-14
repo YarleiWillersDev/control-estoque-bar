@@ -66,7 +66,7 @@ public class MovimentacaoEstoqueServiceImpl implements MovimentacaoEstoqueServic
     @Transactional
     public MovimentacaoEstoqueResponse atualizarQuantidade(Long id, MovimentacaoEstoqueUpdateQuantidadeRequest request) {
         MovimentacaoEstoque movimentacaoAtual = movimentacaoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Movimentação com ID " + id + " não encontrada."));
+                .orElseThrow(() -> new MovimentacaoEstoqueInexistenteException("Movimentação com ID " + id + " não encontrada."));
 
         int novaQuantidade = request.novaQuantidade();
         movimentacaoEstoqueUpdater.atualizarQuantidade(movimentacaoAtual, novaQuantidade);

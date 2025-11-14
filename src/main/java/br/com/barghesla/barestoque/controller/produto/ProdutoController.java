@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,8 +28,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 @RestController
+@Validated
 @RequestMapping("/produtos")
 @Tag(name = "Produtos", description = "Operações relacionadas aos pordutos do estoque")
 public class ProdutoController {
@@ -90,7 +94,7 @@ public class ProdutoController {
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
     @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
 
-    public ResponseEntity<ProdutoResponse> buscarPorId(@Parameter(description = "ID do produto encontrado") @PathVariable Long id) {
+    public ResponseEntity<ProdutoResponse> buscarPorId(@Parameter(description = "ID do produto encontrado") @PathVariable @Min(1) Long id) {
         ProdutoResponse produtoEncontradoPeloId = produtoService.buscarPorId(id);
         return ResponseEntity.status(HttpStatus.OK).body(produtoEncontradoPeloId);
     }
@@ -105,7 +109,7 @@ public class ProdutoController {
 
     public ResponseEntity<List<ProdutoResponse>> buscarPorNome(
         @Parameter(description = "Nome ou parte do nome do produto a ser pesquisado")
-        @RequestParam(name = "nome") String nome) {
+        @RequestParam (name = "nome") @NotBlank String nome) {
             
         List<ProdutoResponse> produtosEncotradosPorNome = produtoService.buscarPorNome(nome);
         return ResponseEntity.status(HttpStatus.OK).body(produtosEncotradosPorNome);
@@ -119,7 +123,7 @@ public class ProdutoController {
     @ApiResponse(responseCode = "403", description = "Acesso negado. Requer perfil de 'GERENTE'.", content = @Content)
     @ApiResponse(responseCode = "404", description = "Nenhum produto foi encontrado", content = @Content)
 
-    public ResponseEntity<List<ProdutoResponse>> buscarPorCategoria(@Parameter(description = "ID da categoria referenciada")@RequestParam Long categoriaId) {
+    public ResponseEntity<List<ProdutoResponse>> buscarPorCategoria(@Parameter(description = "ID da categoria referenciada")@RequestParam @Min(1) Long categoriaId) {
         List<ProdutoResponse> produtosEncontradosPelaCategoria = produtoService.buscarPorCategoria(categoriaId);
         return ResponseEntity.status(HttpStatus.OK).body(produtosEncontradosPelaCategoria);
     }
